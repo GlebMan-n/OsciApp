@@ -113,14 +113,7 @@ void Oscilloscope::slotNewData(QVector<ZLogData> arr)
 bool Oscilloscope::viewportEvent(QEvent *event)
 {
     if (event->type() == QEvent::TouchBegin) {
-        // By default touch events are converted to mouse events. So
-        // after this event we will get a mouse event also but we want
-        // to handle touch events as gestures only. So we need this safeguard
-        // to block mouse events that are actually generated from touch.
         m_isTouching = true;
-
-        // Turn off animations when handling gestures they
-        // will only slow us down.
         chart()->setAnimationOptions(QChart::NoAnimation);
     }
     return QChartView::viewportEvent(event);
@@ -163,10 +156,7 @@ void Oscilloscope::mouseReleaseEvent(QMouseEvent *event)
         m_isCatPressed = false;
         return;
     }
-    // Because we disabled animatio#include <QMessageBox>ns when touch event was detected
-    // we must put them back on.
     chart()->setAnimationOptions(QChart::SeriesAnimations);
-
     QChartView::mouseReleaseEvent(event);
 }
 
