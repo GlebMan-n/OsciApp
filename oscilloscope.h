@@ -62,6 +62,7 @@ private:
     QPair<QString,bool>         m_changeCat;
     QCategoryAxis*              m_curCatAxis;
     QGraphicsLineItem*          m_selectedItemLine;
+    QColor                      m_defAxColor;
 };
 
 #endif // OSCILLOSCOPE_H

@@ -24,7 +24,7 @@ Oscilloscope::Oscilloscope() :
 
     m_chart->legend()->hide();
     m_chart->setTitle(QObject::tr("Осциллоскоп"));
-
+    m_defAxColor = Qt::yellow;
 
     m_dtStart = QDateTime::currentDateTime();
     m_autoupdate = false;
@@ -54,7 +54,7 @@ Oscilloscope::Oscilloscope() :
     m_axisY->setMin(0);
 
     m_chart->addAxis(m_axisY, Qt::AlignLeft);
-    m_catPen = QPen(Qt::yellow,3,Qt::DashDotLine,Qt::RoundCap,Qt::RoundJoin);
+    m_catPen = QPen(m_defAxColor,3,Qt::DashDotLine,Qt::RoundCap,Qt::RoundJoin);
     m_catColor = Qt::blue;
 
     QList<TrendOscilloscope*>::const_iterator it = m_trends.constBegin();
@@ -140,27 +140,19 @@ void Oscilloscope::mousePressEvent(QMouseEvent *event)
     {
         setRubberBand(QChartView::NoRubberBand);
         m_selectedItemLine = dynamic_cast<QGraphicsLineItem*> (itemAt(event->pos()));
-        if(m_selectedItemLine && m_selectedItemLine->pen().color() == Qt::yellow)
+        if(m_selectedItemLine && m_selectedItemLine->pen().color() == m_defAxColor)
             selectItem(m_selectedItemLine,Qt::red);
         return;
     }
     QChartView::mousePressEvent(event);
 }
 
-
 void Oscilloscope::mouseMoveEvent(QMouseEvent *event)
 {
     if (m_isTouching)
         return;
-    if(m_isCatPressed)
-    {
-        bool bRes = moveCat(this->chart()->mapToValue(event->pos()));
-        //двигаем выбранную категорию за мышкой
-        if(bRes)
-        {
-            return;
-        }
-    }
+    if(m_isCatPressed && moveCat(event->pos()))
+        return;
     QChartView::mouseMoveEvent(event);
 }
 
@@ -171,10 +163,9 @@ void Oscilloscope::mouseReleaseEvent(QMouseEvent *event)
         m_isTouching = false;
     if(m_isCatPressed)
     {
-        //фиксируем выбранную категорию
         m_isCatPressed = false;
         if(m_selectedItemLine)
-        selectItem(m_selectedItemLine,Qt::yellow);
+            selectItem(m_selectedItemLine,m_defAxColor);
         m_selectedItemLine = nullptr;
         return;
     }
@@ -285,10 +276,22 @@ bool Oscilloscope::findCatByPoint(const QPointF &point)
 }
 
 bool Oscilloscope::moveCat(const QPointF &point)
-{
-    /*if(m_changeCat.first.isEmpty())
+{    
+    int y = this->chart()->mapToValue(point).y();
+    if(!m_curCatAxis)
         return false;
-     m_cat->setStartValue(point.y());*/
+    if(m_changeCat.second)
+        m_curCatAxis->setStartValue(y);
+    else
+    {
+        int startV = qCeil(m_curCatAxis->startValue(m_changeCat.first));
+        m_curCatAxis->remove(m_changeCat.first);
+        m_curCatAxis->append(m_changeCat.first,qCeil(y));
+        selectItem(m_selectedItemLine,m_defAxColor);
+        m_selectedItemLine = dynamic_cast<QGraphicsLineItem*> (itemAt(point.x(),point.y()));
+        if(m_selectedItemLine && m_selectedItemLine->pen().color() == m_defAxColor)
+            selectItem(m_selectedItemLine,Qt::red);
+    }
      return true;
 }
 
