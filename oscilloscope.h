@@ -17,8 +17,7 @@ public:
     void setTimeMax(qreal timeMax) {m_timeMax = timeMax;}
     void setValMax(qreal valMax)  {m_valMax = valMax;}
     void setTickCountTime(int tickCountTime)  {m_TickCountTime = tickCountTime;}
-    void addCategory(const QVariant& val,
-                     const QString& name = QObject::tr("нет"));
+    void addCategory(const QVariant& startVal, const QVariant& endVal,const QString& name = QObject::tr("нет"));
     void setTickCountVal(int tickCountVal)  { m_TickCountVal = tickCountVal;}
     void addTrend(TrendOscilloscope* trend);
 public slots:
@@ -39,7 +38,8 @@ protected:
         QChartView::wheelEvent(event);
     }
 private:
-    bool checkIfCateg(const QPointF &point) const;
+    bool findCatByPoint(const QPointF &point);
+    bool moveCat(const QPointF &point);
 private:
     QList<TrendOscilloscope*>   m_trends;
     OsciChart*                  m_chart;
@@ -55,9 +55,13 @@ private:
     bool                        m_isTouching;
     bool                        m_isCatPressed;
     bool                        m_autoupdate;
-    QCategoryAxis*              m_cat;
+    QList<QCategoryAxis*>       m_cats;
     QColor                      m_catColor;
     QPen                        m_catPen;
+    //категория, которая будет изменена название, первый/второй
+    QPair<QString,bool>         m_changeCat;
+    QCategoryAxis*              m_curCatAxis;
+    QGraphicsLineItem*          m_selectedItemLine;
 };
 
 #endif // OSCILLOSCOPE_H

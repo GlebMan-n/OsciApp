@@ -1,21 +1,30 @@
 #include "oscilloscope.h"
 #include <QColor>
 #include <QMessageBox>
+#include <QtMath>
+
+
+static void selectItem(QGraphicsLineItem* gItem , const QColor &color)
+{
+    if(!gItem)
+        return;
+    QPen pen;
+    pen = gItem->pen();
+    pen.setColor(color);
+    gItem->setPen(pen);
+}
 
 Oscilloscope::Oscilloscope() :
     m_isTouching(false),
-    m_isCatPressed(false)
+    m_isCatPressed(false),
+    m_selectedItemLine(nullptr),
+    m_curCatAxis(nullptr)
 {    
     m_chart = new OsciChart();
 
     m_chart->legend()->hide();
     m_chart->setTitle(QObject::tr("Осциллоскоп"));
 
-    m_catPen = QPen(Qt::yellow,3,Qt::DashDotLine,Qt::RoundCap,Qt::RoundJoin);
-    m_catColor = Qt::blue;
-    m_cat = new QCategoryAxis();
-    m_cat->setLinePenColor(m_catColor);
-    m_cat->setGridLinePen(m_catPen);
 
     m_dtStart = QDateTime::currentDateTime();
     m_autoupdate = false;
@@ -43,18 +52,20 @@ Oscilloscope::Oscilloscope() :
     m_axisY->setTitleText(QObject::tr("значение (ед.)"));
     m_axisY->setLinePenColor(Qt::green);
     m_axisY->setMin(0);
-    m_chart->addAxis(m_cat, Qt::AlignRight);
+
     m_chart->addAxis(m_axisY, Qt::AlignLeft);
+    m_catPen = QPen(Qt::yellow,3,Qt::DashDotLine,Qt::RoundCap,Qt::RoundJoin);
+    m_catColor = Qt::blue;
 
     QList<TrendOscilloscope*>::const_iterator it = m_trends.constBegin();
     while (it != m_trends.end())
     {
         TrendOscilloscope* trend = *it;
+        if (trend)
         {
             m_chart->addSeries(trend->getSeries());
             trend->getSeries()->attachAxis(m_axisX);
             trend->getSeries()->attachAxis(m_axisY);
-            trend->getSeries()->attachAxis(m_cat);
         }
         *it++;
     }
@@ -123,16 +134,19 @@ void Oscilloscope::mousePressEvent(QMouseEvent *event)
 {
     if (m_isTouching)
         return;
-    //получили позицию координат графика для нажатия отправляем на проверку
-    m_isCatPressed = checkIfCateg(this->chart()->mapToValue(event->pos()));
-
+    //получили позицию координат графика для нажатия отправляем на проверку и поиск категории
+    m_isCatPressed = findCatByPoint(this->chart()->mapToValue(event->pos()));
     if(m_isCatPressed)
     {
-        //выбираем категорию
+        setRubberBand(QChartView::NoRubberBand);
+        m_selectedItemLine = dynamic_cast<QGraphicsLineItem*> (itemAt(event->pos()));
+        if(m_selectedItemLine && m_selectedItemLine->pen().color() == Qt::yellow)
+            selectItem(m_selectedItemLine,Qt::red);
         return;
     }
     QChartView::mousePressEvent(event);
 }
+
 
 void Oscilloscope::mouseMoveEvent(QMouseEvent *event)
 {
@@ -140,20 +154,28 @@ void Oscilloscope::mouseMoveEvent(QMouseEvent *event)
         return;
     if(m_isCatPressed)
     {
+        bool bRes = moveCat(this->chart()->mapToValue(event->pos()));
         //двигаем выбранную категорию за мышкой
-        return;
+        if(bRes)
+        {
+            return;
+        }
     }
     QChartView::mouseMoveEvent(event);
 }
 
 void Oscilloscope::mouseReleaseEvent(QMouseEvent *event)
 {
+    setRubberBand(QChartView::RectangleRubberBand);
     if (m_isTouching)
         m_isTouching = false;
     if(m_isCatPressed)
     {
         //фиксируем выбранную категорию
         m_isCatPressed = false;
+        if(m_selectedItemLine)
+        selectItem(m_selectedItemLine,Qt::yellow);
+        m_selectedItemLine = nullptr;
         return;
     }
     chart()->setAnimationOptions(QChart::SeriesAnimations);
@@ -199,12 +221,74 @@ void Oscilloscope::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void Oscilloscope::addCategory(const QVariant& val, const QString& name)
+void Oscilloscope::addCategory(const QVariant& startVal, const QVariant& endVal, const QString& name/* = QObject::tr("нет")*/)
 {
-    m_cat->append(name,val.toReal());
+    QCategoryAxis* cat = new QCategoryAxis();
+    cat->setLinePenColor(m_catColor);
+    cat->setGridLinePen(m_catPen);
+    cat->setStartValue(startVal.toReal());
+    cat->append(name,endVal.toReal());
+    m_chart->addAxis(cat, Qt::AlignRight);
+
+    QList<TrendOscilloscope*>::const_iterator it = m_trends.constBegin();
+    while (it != m_trends.end())
+    {
+        TrendOscilloscope* trend = *it;
+        if (trend)
+
+            trend->getSeries()->attachAxis(cat);
+
+        *it++;
+    }
+    m_cats.append(cat);
 }
 
-bool Oscilloscope::checkIfCateg(const QPointF &point) const
+bool Oscilloscope::findCatByPoint(const QPointF &point)
 {
+    if(m_cats.isEmpty())
+        return false;
+    QList<QCategoryAxis*>::const_iterator it = m_cats.constBegin();
+    while (it != m_cats.end())
+    {
+        QCategoryAxis* cat = *it;
+        if(cat)
+        {
+            QStringList list = cat->categoriesLabels();
+            for(auto i = 0; i < list.size(); i++)
+            {
+                int y = qCeil(point.y());
+                int start = qCeil(cat->startValue(list.at(i)));
+                int end = qCeil(cat->endValue(list.at(i)));
+                if(qCeil(point.y()) == qCeil(cat->startValue(list.at(i))))
+                {
+                    m_changeCat.first = list.at(i);
+                    m_changeCat.second = true;
+                    m_curCatAxis = cat;
+                    return true;
+                }
+
+                if(qCeil(point.y()) == qCeil(cat->endValue(list.at(i))))
+                {
+                    m_changeCat.first = list.at(i);
+                    m_changeCat.second = false;
+                    m_curCatAxis = cat;
+                    return true;
+                }
+            }
+
+        }
+        *it++;
+    }
+
+    m_changeCat.first = QString();
     return false;
 }
+
+bool Oscilloscope::moveCat(const QPointF &point)
+{
+    /*if(m_changeCat.first.isEmpty())
+        return false;
+     m_cat->setStartValue(point.y());*/
+     return true;
+}
+
