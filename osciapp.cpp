@@ -25,7 +25,7 @@ OsciApp::OsciApp(QWidget *parent) :
     resize(800, 600);
     m_timer = new QTimer(this);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(slotTimer()));
-    m_timer->start(1000);
+    m_timer->start(3000);
 }
 
 void OsciApp::slotTimer()

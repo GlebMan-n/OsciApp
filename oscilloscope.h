@@ -38,8 +38,12 @@ protected:
         QChartView::wheelEvent(event);
     }
 private:
+    //передавать координаты графика
     bool findCatByPoint(const QPointF &point);
+    //передавать экранные координаты
     bool moveCat(const QPointF &point);
+    //передавать экранные координаты
+    QList<QPoint> getPointsToDrawHint(const QPointF &point);
 private:
     QList<TrendOscilloscope*>   m_trends;
     OsciChart*                  m_chart;

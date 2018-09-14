@@ -14,6 +14,15 @@ static void selectItem(QGraphicsLineItem* gItem , const QColor &color)
     gItem->setPen(pen);
 }
 
+<<<<<<< HEAD
+static bool pointInLine(const QPointF &point, const QVector<QPointF>& line)
+=======
+static bool pointInLine(const QPointF &point, const QVector& line)
+>>>>>>> 7022faa3c6d9f64324a294e6eb0190222a0ed6e9
+{
+    return false;
+}
+
 Oscilloscope::Oscilloscope() :
     m_isTouching(false),
     m_isCatPressed(false),
@@ -273,6 +282,12 @@ bool Oscilloscope::findCatByPoint(const QPointF &point)
 
     m_changeCat.first = QString();
     return false;
+}
+
+QList<QPoint> Oscilloscope::getPointsToDrawHint(const QPointF &point)
+{
+    QList<QPoint> res;
+    return res;
 }
 
 bool Oscilloscope::moveCat(const QPointF &point)
