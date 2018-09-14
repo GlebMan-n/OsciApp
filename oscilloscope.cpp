@@ -14,15 +14,8 @@ static void selectItem(QGraphicsLineItem* gItem , const QColor &color)
     gItem->setPen(pen);
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 static bool pointInLine(const QPointF &point, const QVector<QPointF>& line)
-=======
-static bool pointInLine(const QPointF &point, const QVector& line)
->>>>>>> 7022faa3c6d9f64324a294e6eb0190222a0ed6e9
-=======
-static bool pointInLine(const QPointF &point, const QVector& line)
->>>>>>> 7022faa3c6d9f64324a294e6eb0190222a0ed6e9
+
 {
     return false;
 }
