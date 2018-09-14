@@ -5,4 +5,5 @@ TrendOscilloscope::TrendOscilloscope(QObject* parent, int id) :
 {
     this->setParent(parent);
     m_series = new QSplineSeries();
+    m_series->setPointLabelsVisible();
 }

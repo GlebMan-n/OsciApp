@@ -14,6 +14,11 @@ static void selectItem(QGraphicsLineItem* gItem , const QColor &color)
     gItem->setPen(pen);
 }
 
+static bool pointInLine(const QPointF &point, const QVector& line)
+{
+    return false;
+}
+
 Oscilloscope::Oscilloscope() :
     m_isTouching(false),
     m_isCatPressed(false),
@@ -273,6 +278,36 @@ bool Oscilloscope::findCatByPoint(const QPointF &point)
 
     m_changeCat.first = QString();
     return false;
+}
+
+QList<QPoint> Oscilloscope::getPointsToDrawHint(const QPointF &point)
+{
+    QPointF grafPoint = this->chart()->mapToValue(point);
+    qreal y = this->chart()->mapToValue(point).y();
+
+    QList<TrendOscilloscope*>::const_iterator it = m_trends.constBegin();
+    while (it != m_trends.end())
+    {
+        TrendOscilloscope* trend = *it;
+        if(trend)
+        {
+            QSplineSeries* series = trend->getSeries();
+            //m_timeMin m_timeMax
+            //все точки тренда
+            QVector<QPointF> points = series->points();
+            if(points.size() < 2)
+                continue;
+            for (auto i = 1; i < points.size(); i++)
+            {
+                QVector vec;
+                vec.append(points.at(i-1));
+                vec.append(points.at(i));
+                pointInLine(grafPoint,vec);
+
+            }
+        }
+        *it++;
+    }
 }
 
 bool Oscilloscope::moveCat(const QPointF &point)
