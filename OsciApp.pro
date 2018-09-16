@@ -27,14 +27,16 @@ SOURCES += \
         osciapp.cpp \
     oscilloscope.cpp \
     trendoscilloscope.cpp \
-    oscichart.cpp
+    oscichart.cpp \
+    oscitooltip.cpp
 
 HEADERS += \
         osciapp.h \
     oscilloscope.h \
     trendoscilloscope.h \
     zlogdata.h \
-    oscichart.h
+    oscichart.h \
+    oscitooltip.h
 
 FORMS += \
         osciapp.ui

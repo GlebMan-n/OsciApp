@@ -7,7 +7,7 @@
 #include "trendoscilloscope.h"
 #include "oscichart.h"
 #include <QtCharts/QCategoryAxis>
-
+class OsciTooltip;
 class Oscilloscope : public QChartView
 {
 public:
@@ -44,6 +44,8 @@ private:
     bool moveCat(const QPointF &point);
     //передавать экранные координаты
     QList<QPoint> getPointsToDrawHint(const QPointF &point);
+    void keepToolTip();
+    void toolTip(QPointF point, bool state);
 private:
     QList<TrendOscilloscope*>   m_trends;
     OsciChart*                  m_chart;
@@ -68,6 +70,8 @@ private:
     QCategoryAxis*              m_curCatAxis;
     QGraphicsLineItem*          m_selectedItemLine;
     QColor                      m_defAxColor;
+    OsciTooltip*                m_tooltip;
+    QList<OsciTooltip*>         m_tooltips;
 };
 
 #endif // OSCILLOSCOPE_H
