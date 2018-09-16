@@ -56,6 +56,7 @@ private:
     qreal                       m_valMin;
     int                         m_TickCountTime;
     int                         m_TickCountVal;
+    int                         m_valCountMax;
     bool                        m_isTouching;
     bool                        m_isCatPressed;
     bool                        m_autoupdate;

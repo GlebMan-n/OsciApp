@@ -20,13 +20,16 @@ QT_CHARTS_USE_NAMESPACE
 class TrendOscilloscope : public QObject
 {
 public:
-    TrendOscilloscope(QObject* parent, int id);
+    TrendOscilloscope(QObject* parent, int id, bool autoremove = false, int countMax = 250);
     int getId() const {return m_id;}
     void setId(int id) {m_id = id;}
     QSplineSeries* getSeries() {return m_series;}
+    void addPoint(const QPointF &point);
 private:
-    int m_id;
-    QSplineSeries* m_series;
+    int                         m_id;
+    QSplineSeries*              m_series;
+    bool                        m_autoremove;
+    int                         m_countMax;
 };
 
 #endif // TRENDOSCILLOSCOPE_H

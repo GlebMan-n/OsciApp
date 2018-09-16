@@ -15,7 +15,6 @@ static void selectItem(QGraphicsLineItem* gItem , const QColor &color)
 }
 
 static bool pointInLine(const QPointF &point, const QVector<QPointF>& line)
-
 {
     return false;
 }
@@ -24,7 +23,8 @@ Oscilloscope::Oscilloscope() :
     m_isTouching(false),
     m_isCatPressed(false),
     m_selectedItemLine(nullptr),
-    m_curCatAxis(nullptr)
+    m_curCatAxis(nullptr),
+    m_valCountMax()
 {    
     m_chart = new OsciChart();
 
@@ -42,9 +42,9 @@ Oscilloscope::Oscilloscope() :
     m_TickCountVal = 5;
 
     QVector<QPointF> vec ;
-    addTrend(new TrendOscilloscope(this, 0));
-    addTrend(new TrendOscilloscope(this, 1));
-    addTrend(new TrendOscilloscope(this, 2));
+    addTrend(new TrendOscilloscope(this, 0, true, 10));
+    addTrend(new TrendOscilloscope(this, 1, true, 10));
+    addTrend(new TrendOscilloscope(this, 2, true, 10));
 
     m_axisX = new QValueAxis();
     m_axisX->setLabelFormat("%i");
@@ -122,8 +122,8 @@ void Oscilloscope::slotNewData(QVector<ZLogData> arr)
     for(auto i = 0; i < arr.size(); i++)
     {
        TrendOscilloscope* trend = findTrendById(arr.at(i).m_id);
-       if(trend)                  
-           trend->getSeries()->append(arr.at(i).m_data.toPointF(m_dtStart));
+       if(trend)                         
+           trend->addPoint(arr.at(i).m_data.toPointF(m_dtStart));
     }
 }
 
@@ -299,6 +299,7 @@ bool Oscilloscope::moveCat(const QPointF &point)
         int startV = qCeil(m_curCatAxis->startValue(m_changeCat.first));
         m_curCatAxis->remove(m_changeCat.first);
         m_curCatAxis->append(m_changeCat.first,qCeil(y));
+        m_curCatAxis->setStartValue(startV);
         selectItem(m_selectedItemLine,m_defAxColor);
         m_selectedItemLine = dynamic_cast<QGraphicsLineItem*> (itemAt(point.x(),point.y()));
         if(m_selectedItemLine && m_selectedItemLine->pen().color() == m_defAxColor)
