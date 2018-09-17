@@ -103,5 +103,5 @@ void OsciTooltip::setAnchor(QPointF point)
 void OsciTooltip::updateGeometry()
 {
     prepareGeometryChange();
-    setPos(m_chart->mapToPosition(m_anchor) + QPoint(10, -50));
+    setPos(m_chart->mapToPosition(m_anchor) + QPoint(10, -40));
 }

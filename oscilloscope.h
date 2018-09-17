@@ -7,6 +7,8 @@
 #include "trendoscilloscope.h"
 #include "oscichart.h"
 #include <QtCharts/QCategoryAxis>
+#include <QLineF>
+#include <QVector>
 class OsciTooltip;
 class Oscilloscope : public QChartView
 {
@@ -42,10 +44,11 @@ private:
     bool findCatByPoint(const QPointF &point);
     //передавать экранные координаты
     bool moveCat(const QPointF &point);
-    //передавать экранные координаты
-    QList<QPoint> getPointsToDrawHint(const QPointF &point);
-    void keepToolTip();
-    void toolTip(QPointF point, bool state);
+    //принимает координаты графика
+    void toolTip(QPointF point);
+    QVector<QLineF> getTrendsLines();
+    void markIntersectionPoints();
+    void clearTooltips();
 private:
     QList<TrendOscilloscope*>   m_trends;
     OsciChart*                  m_chart;
@@ -58,7 +61,6 @@ private:
     qreal                       m_valMin;
     int                         m_TickCountTime;
     int                         m_TickCountVal;
-    int                         m_valCountMax;
     bool                        m_isTouching;
     bool                        m_isCatPressed;
     bool                        m_autoupdate;
