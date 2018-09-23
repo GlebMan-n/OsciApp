@@ -28,7 +28,9 @@ SOURCES += \
     oscilloscope.cpp \
     trendoscilloscope.cpp \
     oscichart.cpp \
-    oscitooltip.cpp
+    oscitooltip.cpp \
+    oscicategoryline.cpp \
+    oscitools.cpp
 
 HEADERS += \
         osciapp.h \
@@ -36,7 +38,9 @@ HEADERS += \
     trendoscilloscope.h \
     zlogdata.h \
     oscichart.h \
-    oscitooltip.h
+    oscitooltip.h \
+    oscicategoryline.h \
+    oscitools.h
 
 FORMS += \
         osciapp.ui

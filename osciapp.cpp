@@ -15,7 +15,7 @@ OsciApp::OsciApp(QWidget *parent) :
 
     m_oscilloscope = new Oscilloscope();   
 
-    m_oscilloscope->addCategory(2,13,QObject::tr("все"));
+    m_oscilloscope->addCategoryX(100,QObject::tr("все"));
     //m_oscilloscope->addCategory(5,16, QObject::tr("норма"));
     //m_oscilloscope->addCategory(16,QObject::tr("максимум"));
     m_oscilloscope->update();
@@ -25,7 +25,7 @@ OsciApp::OsciApp(QWidget *parent) :
     resize(800, 600);
     m_timer = new QTimer(this);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(slotTimer()));
-    m_timer->start(3000);
+    m_timer->start(1000);
 }
 
 void OsciApp::slotTimer()

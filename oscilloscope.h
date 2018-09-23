@@ -2,14 +2,17 @@
 #define OSCILLOSCOPE_H
 
 #include <zlogdata.h>
-
 #include <QList>
 #include "trendoscilloscope.h"
 #include "oscichart.h"
 #include <QtCharts/QCategoryAxis>
 #include <QLineF>
 #include <QVector>
+
 class OsciTooltip;
+class OsciCategoryLine;
+class QGraphicsLineItem;
+
 class Oscilloscope : public QChartView
 {
 public:
@@ -19,9 +22,13 @@ public:
     void setTimeMax(qreal timeMax) {m_timeMax = timeMax;}
     void setValMax(qreal valMax)  {m_valMax = valMax;}
     void setTickCountTime(int tickCountTime)  {m_TickCountTime = tickCountTime;}
-    void addCategory(const QVariant& startVal, const QVariant& endVal,const QString& name = QObject::tr("нет"));
+    //добавляем линию категории по горизонтали
+    void addCategoryY(qreal val, const QString& label = QObject::tr("нет"));
+    //добавляем линию категории по вертикали
+    void addCategoryX(qreal val, const QString& label = QObject::tr("нет"));
     void setTickCountVal(int tickCountVal)  { m_TickCountVal = tickCountVal;}
     void addTrend(TrendOscilloscope* trend);
+    qreal getValMax() const {return m_valMax; }
 public slots:
     void slotNewData(QVector<ZLogData> arr);
 
@@ -39,7 +46,7 @@ protected:
         event->accept();
         QChartView::wheelEvent(event);
     }
-private:
+/*private:
     //передавать координаты графика
     bool findCatByPoint(const QPointF &point);
     //передавать экранные координаты
@@ -48,32 +55,23 @@ private:
     void toolTip(QPointF point);
     QVector<QLineF> getTrendsLines();
     void markIntersectionPoints();
-    void clearTooltips();
+    void clearTooltips();*/
 private:
-    QList<TrendOscilloscope*>   m_trends;
-    OsciChart*                  m_chart;
-    QValueAxis*                 m_axisY;
-    QValueAxis*                 m_axisX;
-    QDateTime                   m_dtStart;
-    qreal                       m_timeMax;
-    qreal                       m_timeMin;
-    qreal                       m_valMax;
-    qreal                       m_valMin;
-    int                         m_TickCountTime;
-    int                         m_TickCountVal;
-    bool                        m_isTouching;
-    bool                        m_isCatPressed;
-    bool                        m_autoupdate;
-    QList<QCategoryAxis*>       m_cats;
-    QColor                      m_catColor;
-    QPen                        m_catPen;
-    //категория, которая будет изменена название, первый/второй
-    QPair<QString,bool>         m_changeCat;
-    QCategoryAxis*              m_curCatAxis;
-    QGraphicsLineItem*          m_selectedItemLine;
-    QColor                      m_defAxColor;
-    OsciTooltip*                m_tooltip;
-    QList<OsciTooltip*>         m_tooltips;
+    QList<TrendOscilloscope*>       m_trends;
+    OsciChart*                      m_chart;
+    QValueAxis*                     m_axisY;
+    QValueAxis*                     m_axisX;
+    QDateTime                       m_dtStart;
+    qreal                           m_timeMax;
+    qreal                           m_timeMin;
+    qreal                           m_valMax;
+    qreal                           m_valMin;
+    int                             m_TickCountTime;
+    int                             m_TickCountVal;
+    bool                            m_autoupdate;
+    QGraphicsLineItem*              m_categoryLine;
+    QList<OsciTooltip*>             m_tooltips;
+    QMap<QString,OsciCategoryLine*> m_catLines;
 };
 
 #endif // OSCILLOSCOPE_H

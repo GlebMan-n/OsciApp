@@ -3,103 +3,16 @@
 #include <QMessageBox>
 #include <QtMath>
 #include "oscitooltip.h"
-/*
-struct ABC
-{
-    qreal A;
-    qreal B;
-    qreal C;
-};
+#include <QGraphicsLineItem>
+#include "oscitools.h"
+#include "oscicategoryline.h"
 
-static int vector_mult(int ax,int ay,int bx,int by) //векторное произведение
-{
-   return ax*by-bx*ay;
-}
-
-static bool areCrossing(QPointF p1, QPointF p2, QPointF p3, QPointF p4) //проверка пересечения
-{
-    int v1 = vector_mult(p4.x() - p3.x(), p4.y() - p3.y(), p1.x() - p3.x(), p1.y() - p3.y());
-    int v2 = vector_mult(p4.x() - p3.x(), p4.y() - p3.y(), p2.x() - p3.x(), p2.y() - p3.y());
-    int v3 = vector_mult(p2.x() - p1.x(), p2.y() - p1.y(), p3.x() - p1.x(), p3.y() - p1.y());
-    int v4 = vector_mult(p2.x() - p1.x(), p2.y() - p1.y(), p4.x() - p1.x(), p4.y() - p1.y());
-    if ( (v1*v2)<0 && (v3*v4)<0 )
-        return true;
-    return false;
-}
-
-static ABC LineEquation(QPointF p1, QPointF p2)
-{
-    ABC abc;
-    abc.A = p2.y() - p1.y();
-    abc.B = p1.x() - p2.x();
-    abc.C = -p1.x() * (p2.y() - p1.y()) + p1.y() * (p2.x() - p1.x());
-}
-
-static QPointF CrossingPoint(ABC abc1, ABC abc2)
-{
-  QPointF res;
-  qreal d = (qreal) (abc1.A * abc2.B - abc1.B *abc2.A);
-  qreal dx = (qreal) (-abc1.C * abc2.B + abc1.B * abc2.C);
-  qreal dy = (qreal) (-abc1.A * abc2.C + abc1.C * abc2.A );
-  res.setX(dx/d);
-  res.setY(dy/d);
-  return res;
-}
-
-
-static QPointF findPointInLine(const QPair<QPointF, QPointF>& line1, const QPair<QPointF, QPointF>& line2)
-{
-    QPointF result;
-    if (areCrossing(line1.first, line1.second, line2.first, line2.second))
-        {
-            ABC abc1 =  LineEquation(line1.first, line1.second);
-            ABC abc2 =  LineEquation(line2.first, line2.second);
-            result = CrossingPoint(abc1,abc2);
-        }
-    return result;
-}
-
-//проверка принадлежности точке к линии
-static bool hPointInLine(const QPointF &point, const QPair<QPointF, QPointF>& line)
-{
-    qreal yMax, yMin;
-    if(line.first.y() > line.second.y())
-    {
-        yMax = line.first.y();
-        yMin = line.second.y();
-    }
-    else
-    {
-        yMax = line.second.y();
-        yMin = line.first.y();
-    }
-    if(point.y() < yMax && point.y() > yMin)
-        return true;
-}
-
-*/
-
-static void selectItem(QGraphicsLineItem* gItem , const QColor &color)
-{
-    if(!gItem)
-        return;
-    QPen pen;
-    pen = gItem->pen();
-    pen.setColor(color);
-    gItem->setPen(pen);
-}
-
-Oscilloscope::Oscilloscope() :
-    m_isTouching(false),
-    m_isCatPressed(false),
-    m_curCatAxis(nullptr),
-    m_selectedItemLine(nullptr)
+Oscilloscope::Oscilloscope()
 {    
     m_chart = new OsciChart();
 
     m_chart->legend()->hide();
     m_chart->setTitle(QObject::tr("Осциллоскоп"));
-    m_defAxColor = Qt::yellow;
 
     m_dtStart = QDateTime::currentDateTime();
     m_autoupdate = false;
@@ -113,11 +26,7 @@ Oscilloscope::Oscilloscope() :
     QVector<QPointF> vec ;
     TrendOscilloscope* trend = new TrendOscilloscope(this, 0, true, 10);
     addTrend(trend);
-    /*trend->addPoint(QPointF(0.0,3.0));
-    trend->addPoint(QPointF(250.0,5.0));
-    trend->addPoint(QPointF(500.0,10.0));
-    trend->addPoint(QPointF(750.0,14.0));
-    trend->addPoint(QPointF(1000.0,7.0));*/
+
     addTrend(new TrendOscilloscope(this, 1, true, 10));
     addTrend(new TrendOscilloscope(this, 2, true, 10));
 
@@ -135,8 +44,6 @@ Oscilloscope::Oscilloscope() :
     m_axisY->setMin(0);
 
     m_chart->addAxis(m_axisY, Qt::AlignLeft);
-    m_catPen = QPen(m_defAxColor,3,Qt::DashDotLine,Qt::RoundCap,Qt::RoundJoin);
-    m_catColor = Qt::blue;
 
     QList<TrendOscilloscope*>::const_iterator it = m_trends.constBegin();
     while (it != m_trends.end())
@@ -153,13 +60,15 @@ Oscilloscope::Oscilloscope() :
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setChart(m_chart);
-    setRenderHint(QPainter::Antialiasing);
+    //setRenderHint(QPainter::Antialiasing);
     setRubberBand(QChartView::RectangleRubberBand);
-    m_chart->setAnimationOptions(QChart::SeriesAnimations);
+    //m_chart->setAnimationOptions(QChart::SeriesAnimations);
     m_axisX->setMax(m_timeMax);
     m_axisX->setMin(m_timeMin);
     m_axisY->setMax(m_valMax);
     m_axisY->setMin(m_valMin);
+
+
 }
 
 void Oscilloscope::addTrend(TrendOscilloscope* trend)
@@ -176,6 +85,7 @@ void Oscilloscope::update()
         m_axisX->setMax(m_timeMax);
         m_axisX->setMin(m_timeMin);
     }
+    this->scene()->update(this->rect());
 }
 
 TrendOscilloscope* Oscilloscope::findTrendById(int id)
@@ -206,7 +116,6 @@ void Oscilloscope::slotNewData(QVector<ZLogData> arr)
 bool Oscilloscope::viewportEvent(QEvent *event)
 {
     if (event->type() == QEvent::TouchBegin) {
-        m_isTouching = true;
         chart()->setAnimationOptions(QChart::NoAnimation);
     }
     return QChartView::viewportEvent(event);
@@ -214,47 +123,19 @@ bool Oscilloscope::viewportEvent(QEvent *event)
 
 void Oscilloscope::mousePressEvent(QMouseEvent *event)
 {
-    if (m_isTouching)
-        return;
-    //получили позицию координат графика для нажатия отправляем на проверку и поиск категории
-    m_isCatPressed = findCatByPoint(this->chart()->mapToValue(event->pos()));
-    if(m_isCatPressed)
-    {
-        setRubberBand(QChartView::NoRubberBand);        
-        m_selectedItemLine = dynamic_cast<QGraphicsLineItem*> (itemAt(event->pos()));
-        if(m_selectedItemLine && m_selectedItemLine->pen().color() == m_defAxColor)
-            selectItem(m_selectedItemLine, Qt::red);
-        return;
-    }
+    //setRubberBand(QChartView::NoRubberBand);
     QChartView::mousePressEvent(event);
 }
 
 void Oscilloscope::mouseMoveEvent(QMouseEvent *event)
 {
-    if (m_isTouching)
-        return;
-    if(m_isCatPressed && moveCat(event->pos()))          
-        return;    
+
     QChartView::mouseMoveEvent(event);
 }
 
 void Oscilloscope::mouseReleaseEvent(QMouseEvent *event)
 {
-    setRubberBand(QChartView::RectangleRubberBand);
-    if (m_isTouching)
-        m_isTouching = false;
-
-    if(m_isCatPressed)
-    {
-        m_isCatPressed = false;
-        if(m_selectedItemLine)
-            selectItem(m_selectedItemLine,m_defAxColor);
-        markIntersectionPoints();
-        m_selectedItemLine = nullptr;
-        return;
-    }
-
-    chart()->setAnimationOptions(QChart::SeriesAnimations);
+    //setRubberBand(QChartView::RectangleRubberBand);
     QChartView::mouseReleaseEvent(event);
 }
 
@@ -273,6 +154,7 @@ void Oscilloscope::keyPressEvent(QKeyEvent *event)
         m_axisY->setMax(m_valMax);
         m_axisY->setMin(m_valMin);
         m_autoupdate = false;
+        this->scene()->update(this->rect());
         break;
     case Qt::Key_Plus:
         m_timeMax = m_timeMax - m_timeMax/2;
@@ -297,83 +179,37 @@ void Oscilloscope::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void Oscilloscope::addCategory(const QVariant& startVal, const QVariant& endVal, const QString& name/* = QObject::tr("нет")*/)
+void Oscilloscope::addCategoryY(qreal val, const QString& label)
 {
-    QCategoryAxis* cat = new QCategoryAxis();
-    cat->setLinePenColor(m_catColor);
-    cat->setGridLinePen(m_catPen);
-    cat->setStartValue(startVal.toReal());
-    cat->append(name,endVal.toReal());
-    m_chart->addAxis(cat, Qt::AlignRight);
-
-    QList<TrendOscilloscope*>::const_iterator it = m_trends.constBegin();
-    while (it != m_trends.end())
+    OsciCategoryLine* line = new OsciCategoryLine(val, Qt::Horizontal, this, m_chart);
+    line->show();
+    if(m_catLines[label] != nullptr)
     {
-        TrendOscilloscope* trend = *it;
-        if (trend)
-            trend->getSeries()->attachAxis(cat);
-        *it++;
+        this->scene()->removeItem(m_catLines[label]);
+        delete m_catLines[label];
     }
-    m_cats.append(cat);
+    m_catLines[label] = line;
+    this->scene()->addItem(line);
 }
 
-bool Oscilloscope::findCatByPoint(const QPointF &point)
+
+void Oscilloscope::addCategoryX(qreal val, const QString& label)
 {
-    if(m_cats.isEmpty())
-        return false;
-    QList<QCategoryAxis*>::const_iterator it = m_cats.constBegin();
-    while (it != m_cats.end())
+    OsciCategoryLine* line = new OsciCategoryLine(val, Qt::Vertical, this, m_chart);
+    line->setLabel(label);
+    line->setMaxY(m_valMax);
+    line->show();
+    if(m_catLines[label] != nullptr)
     {
-        QCategoryAxis* cat = *it;
-        if(cat)
-        {
-            QStringList list = cat->categoriesLabels();
-            for(auto i = 0; i < list.size(); i++)
-            {
-                if(qCeil(point.y()) == qCeil(cat->startValue(list.at(i))))
-                {
-                    m_changeCat.first = list.at(i);
-                    m_changeCat.second = true;
-                    m_curCatAxis = cat;
-                    return true;
-                }
-
-                if(qCeil(point.y()) == qCeil(cat->endValue(list.at(i))))
-                {
-                    m_changeCat.first = list.at(i);
-                    m_changeCat.second = false;
-                    m_curCatAxis = cat;
-                    return true;
-                }
-            }
-
-        }
-        *it++;
+        this->scene()->removeItem(m_catLines[label]);
+        delete m_catLines[label];
     }
-    m_changeCat.first = QString();
-    return false;
+
+    m_catLines[label] = line;
+    this->scene()->addItem(line);
 }
 
-bool Oscilloscope::moveCat(const QPointF &point)
-{    
-    qreal y = this->chart()->mapToValue(point).y();
-    if(!m_curCatAxis)
-        return false;
-    if(m_changeCat.second)
-        m_curCatAxis->setStartValue(y);
-    else
-    {
-        qreal startV = m_curCatAxis->startValue(m_changeCat.first);
-        m_curCatAxis->remove(m_changeCat.first);
-        m_curCatAxis->append(m_changeCat.first,y);
-        m_curCatAxis->setStartValue(startV);
-        selectItem(m_selectedItemLine,m_defAxColor);        
-        if(m_selectedItemLine && m_selectedItemLine->pen().color() == m_defAxColor)
-            selectItem(m_selectedItemLine,Qt::red);
-    }
-    return true;
-}
-
+/*
 void Oscilloscope::markIntersectionPoints()
 {
     //контрольная линиялиния
@@ -400,8 +236,9 @@ void Oscilloscope::markIntersectionPoints()
             toolTip(intersectionPoint);
     }
     this->repaint();
-}
+}*/
 
+/*
 QVector<QLineF> Oscilloscope::getTrendsLines()
 {
     //TODO: перебор трендов
@@ -419,7 +256,9 @@ QVector<QLineF> Oscilloscope::getTrendsLines()
     }
     return result;
 }
+*/
 
+/*
 void Oscilloscope::clearTooltips()
 {
     for(auto i = 0; i < m_tooltips.size(); i++)
@@ -434,7 +273,9 @@ void Oscilloscope::clearTooltips()
     m_tooltips.clear();
     this->repaint();
 }
+*/
 
+/*
 void Oscilloscope::toolTip(QPointF point)
 {
     OsciTooltip* tooltip = new OsciTooltip(m_chart);
@@ -444,6 +285,5 @@ void Oscilloscope::toolTip(QPointF point)
     tooltip->updateGeometry();
     tooltip->show();
     m_tooltips.append(tooltip);
-
 }
-
+*/
