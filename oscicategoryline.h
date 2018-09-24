@@ -27,7 +27,6 @@ public:
     void setOrientation(Qt::Orientation orientation) { m_orientation = orientation; }
     Qt::Orientation getOrientation() const {return m_orientation;}
 protected:
-    //virtual QRectF boundingRect() const;
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
@@ -46,6 +45,7 @@ private:
     qreal           m_maxY;
     Qt::Orientation m_orientation;
     QString         m_label;
+    bool            m_pressed;
 };
 
 #endif // OSCICATEGORYLINE_H

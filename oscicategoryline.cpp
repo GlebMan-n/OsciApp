@@ -13,6 +13,7 @@ OsciCategoryLine::OsciCategoryLine(qreal val,
                  Oscilloscope* osci,
                  OsciChart *parent)
 {
+    m_pressed = false;
     m_osci = osci;
     m_chart = parent;
     setOrientation(orientaton);
@@ -20,18 +21,11 @@ OsciCategoryLine::OsciCategoryLine(qreal val,
         setY(val);
     else
         setX(val);
-    m_pen.setWidth(2);
+    m_pen.setWidth(1.5);
     m_pen.setStyle(Qt::PenStyle::SolidLine);
-    m_pen.setColor(Qt::darkMagenta);
+    m_pen.setColor(Qt::green);
 }
-/*
-QRectF OsciCategoryLine::boundingRect() const
-{
-    QPointF p1 = getPoint1();
-    QPointF p2 = getPoint2();
-    return QRectF(p1.x(), p1.y(), p2.x(), p2.y());
-}
-*/
+
 void OsciCategoryLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QPen pen(m_pen);
@@ -44,29 +38,32 @@ void OsciCategoryLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     if(!m_label.isEmpty())
     {
         QPointF pt2_;
-        pt2_.setX(pt2.x() - ((m_label.size()*9) /2 ));
-        pt2_.setY(pt2.y() - 5);
+        pt2_.setX(pt2.x() - (( qreal(m_label.size()) * 9.0) / 2.0 ));
+        pt2_.setY(pt2.y() - 5.0);
         painter->drawText(pt2_, m_label);
         QPointF pt1 = getPoint1();
-        pt1.setX(pt1.x() - ((m_label.size()*9) /2 ));
-        pt1.setY(pt1.y() + 12);
+        pt1.setX(pt1.x() - (((qreal)m_label.size()*9.0) /2.0 ));
+        pt1.setY(pt1.y() + 12.0);
         painter->drawText(pt1, m_label);
     }
 }
 
 void OsciCategoryLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-
+    setSelected(true);
 }
 
 void OsciCategoryLine::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
+    if(isSelected())
+    {
 
+    }
 }
 
 void OsciCategoryLine::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-
+    setSelected(false);
 }
 
 QPointF OsciCategoryLine::getPoint1() const
@@ -74,7 +71,10 @@ QPointF OsciCategoryLine::getPoint1() const
     if(!m_osci) return QPointF();
     QPointF start;
     if(getOrientation() == Qt::Horizontal)
-        start = m_chart->mapToPosition(QPointF(0,m_y));
+    {
+        qreal xmin = m_chart->mapToValue(m_chart->plotArea().bottomLeft()).x();
+        start = m_chart->mapToPosition(QPointF(xmin,m_y));
+    }
     else
     {
         qreal ymin = m_chart->mapToValue(m_chart->plotArea().bottomLeft()).y();
@@ -89,11 +89,13 @@ QPointF OsciCategoryLine::getPoint2() const
     if(!m_osci) return QPointF();
     QPointF start;
     if(getOrientation() == Qt::Horizontal)
-        start = m_chart->mapToPosition(QPointF(m_osci->width(),m_y));
+    {
+        qreal xmax = m_chart->mapToValue(m_chart->plotArea().topLeft()).x();
+        start = m_chart->mapToPosition(QPointF(xmax,m_y));
+    }
     else
     {
         qreal ymax = m_chart->mapToValue(m_chart->plotArea().topLeft()).y();
-
         start = m_chart->mapToPosition(QPointF(m_x, ymax));
     }
     QPointF startItem = mapFromScene(start);
