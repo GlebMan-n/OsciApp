@@ -13,7 +13,7 @@ QT_END_NAMESPACE
 class OsciChart;
 class Oscilloscope;
 
-class OsciCategoryLine : public QGraphicsLineItem
+class OsciCategoryLine : public QGraphicsItem
 {
 public:
     OsciCategoryLine(qreal val,
@@ -26,11 +26,15 @@ public:
     void setLabel(const QString& label) {m_label = label;}
     void setOrientation(Qt::Orientation orientation) { m_orientation = orientation; }
     Qt::Orientation getOrientation() const {return m_orientation;}
-protected:
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    void mousePressEvent(QGraphicsSceneMouseEvent *event);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    QRectF boundingRect() const override;
+protected:    
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
 private:
     QPointF getPoint1() const;
     QPointF getPoint2() const;

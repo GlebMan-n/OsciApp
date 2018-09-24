@@ -123,19 +123,37 @@ bool Oscilloscope::viewportEvent(QEvent *event)
 
 void Oscilloscope::mousePressEvent(QMouseEvent *event)
 {
-    //setRubberBand(QChartView::NoRubberBand);
+    QList<QGraphicsItem*> items = this->items(event->pos());
+    for(auto i = 0; i < items.size(); i++)
+    {
+        QGraphicsLineItem* line = dynamic_cast<QGraphicsLineItem*>(items.at(i));
+        if(line)
+        {
+            line->setSelected(true);
+            line->setPen(QPen(Qt::red));
+            setRubberBand(QChartView::NoRubberBand);
+        }
+    }
     QChartView::mousePressEvent(event);
 }
 
 void Oscilloscope::mouseMoveEvent(QMouseEvent *event)
 {
-
     QChartView::mouseMoveEvent(event);
 }
 
 void Oscilloscope::mouseReleaseEvent(QMouseEvent *event)
 {
-    //setRubberBand(QChartView::RectangleRubberBand);
+    QStringList keys = m_catLines.keys();
+    for(auto i = 0; i < keys.size(); i++)
+    {
+        OsciCategoryLine* line;
+        line = m_catLines.value(keys.at(i));
+        if(!line)
+            continue;
+        line->setSelected(false);
+    }
+    setRubberBand(QChartView::RectangleRubberBand);
     QChartView::mouseReleaseEvent(event);
 }
 
@@ -189,7 +207,7 @@ void Oscilloscope::addCategoryY(qreal val, const QString& label)
         delete m_catLines[label];
     }
     m_catLines[label] = line;
-    this->scene()->addItem(line);
+    this->scene()->addItem(line);    
 }
 
 

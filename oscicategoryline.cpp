@@ -12,7 +12,7 @@ OsciCategoryLine::OsciCategoryLine(qreal val,
                  Qt::Orientation orientaton,
                  Oscilloscope* osci,
                  OsciChart *parent)
-{
+{    
     m_pressed = false;
     m_osci = osci;
     m_chart = parent;
@@ -21,7 +21,7 @@ OsciCategoryLine::OsciCategoryLine(qreal val,
         setY(val);
     else
         setX(val);
-    m_pen.setWidth(1.5);
+    m_pen.setWidth(3.0);
     m_pen.setStyle(Qt::PenStyle::SolidLine);
     m_pen.setColor(Qt::green);
 }
@@ -45,25 +45,10 @@ void OsciCategoryLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         pt1.setX(pt1.x() - (((qreal)m_label.size()*9.0) /2.0 ));
         pt1.setY(pt1.y() + 12.0);
         painter->drawText(pt1, m_label);
-    }
-}
-
-void OsciCategoryLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
-{
-    setSelected(true);
-}
-
-void OsciCategoryLine::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
-{
-    if(isSelected())
-    {
 
     }
-}
-
-void OsciCategoryLine::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-    setSelected(false);
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
 }
 
 QPointF OsciCategoryLine::getPoint1() const
@@ -100,4 +85,39 @@ QPointF OsciCategoryLine::getPoint2() const
     }
     QPointF startItem = mapFromScene(start);
     return startItem;
+}
+
+QRectF OsciCategoryLine::boundingRect() const
+{
+    QPointF topLeft = getPoint2();
+    topLeft.setX(topLeft.x() - 2.5);
+    QPointF bottomRight = getPoint1();
+    bottomRight.setX(bottomRight.x() + 2.5);
+    return QRectF(getPoint1(),getPoint2());
+}
+
+void OsciCategoryLine::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+{
+    Q_UNUSED(event);
+}
+
+void OsciCategoryLine::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+{
+    Q_UNUSED(event);
+}
+
+
+void OsciCategoryLine::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    Q_UNUSED(event);
+}
+
+void OsciCategoryLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    Q_UNUSED(event);
+}
+
+void OsciCategoryLine::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+{
+    Q_UNUSED(event);
 }
