@@ -60,8 +60,8 @@ Oscilloscope::Oscilloscope()
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setChart(m_chart);
-    //setRenderHint(QPainter::Antialiasing);
-    setRubberBand(QChartView::RectangleRubberBand);
+    setRenderHint(QPainter::Antialiasing);
+    setRubberBand(QChartView::NoRubberBand);
     //m_chart->setAnimationOptions(QChart::SeriesAnimations);
     m_axisX->setMax(m_timeMax);
     m_axisX->setMin(m_timeMin);
@@ -103,6 +103,7 @@ TrendOscilloscope* Oscilloscope::findTrendById(int id)
 
 void Oscilloscope::slotNewData(QVector<ZLogData> arr)
 {
+    return;
     update();
     for(auto i = 0; i < arr.size(); i++)
     {
@@ -123,17 +124,6 @@ bool Oscilloscope::viewportEvent(QEvent *event)
 
 void Oscilloscope::mousePressEvent(QMouseEvent *event)
 {
-    QList<QGraphicsItem*> items = this->items(event->pos());
-    for(auto i = 0; i < items.size(); i++)
-    {
-        QGraphicsLineItem* line = dynamic_cast<QGraphicsLineItem*>(items.at(i));
-        if(line)
-        {
-            line->setSelected(true);
-            line->setPen(QPen(Qt::red));
-            setRubberBand(QChartView::NoRubberBand);
-        }
-    }
     QChartView::mousePressEvent(event);
 }
 
@@ -144,17 +134,19 @@ void Oscilloscope::mouseMoveEvent(QMouseEvent *event)
 
 void Oscilloscope::mouseReleaseEvent(QMouseEvent *event)
 {
-    QStringList keys = m_catLines.keys();
-    for(auto i = 0; i < keys.size(); i++)
-    {
-        OsciCategoryLine* line;
-        line = m_catLines.value(keys.at(i));
-        if(!line)
-            continue;
-        line->setSelected(false);
-    }
-    setRubberBand(QChartView::RectangleRubberBand);
     QChartView::mouseReleaseEvent(event);
+}
+
+void Oscilloscope::keyReleaseEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+    case Qt::Key_Control:
+        setRubberBand(QChartView::NoRubberBand);
+    break;
+    default:
+        QGraphicsView::keyReleaseEvent(event);
+        break;
+    }
 }
 
 void Oscilloscope::keyPressEvent(QKeyEvent *event)
@@ -191,6 +183,9 @@ void Oscilloscope::keyPressEvent(QKeyEvent *event)
     case Qt::Key_F5:
         m_autoupdate = !m_autoupdate;
         break;
+    case Qt::Key_Control:
+        setRubberBand(QChartView::RectangleRubberBand);
+    break;
     default:
         QGraphicsView::keyPressEvent(event);
         break;

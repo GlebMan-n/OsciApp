@@ -38,6 +38,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE
     {
         chart()->scroll(event->delta(), 0);
@@ -46,16 +47,6 @@ protected:
         event->accept();
         QChartView::wheelEvent(event);
     }
-/*private:
-    //передавать координаты графика
-    bool findCatByPoint(const QPointF &point);
-    //передавать экранные координаты
-    bool moveCat(const QPointF &point);
-    //принимает координаты графика
-    void toolTip(QPointF point);
-    QVector<QLineF> getTrendsLines();
-    void markIntersectionPoints();
-    void clearTooltips();*/
 private:
     QList<TrendOscilloscope*>       m_trends;
     OsciChart*                      m_chart;

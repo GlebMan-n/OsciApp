@@ -7,12 +7,13 @@
 #include <QtGui/QMouseEvent>
 #include <QtCharts/QChart>
 #include "oscilloscope.h"
-
+#include <QDebug>
 OsciCategoryLine::OsciCategoryLine(qreal val,
                  Qt::Orientation orientaton,
                  Oscilloscope* osci,
                  OsciChart *parent)
-{    
+{
+    m_drawText = 0;
     m_pressed = false;
     m_osci = osci;
     m_chart = parent;
@@ -29,24 +30,27 @@ OsciCategoryLine::OsciCategoryLine(qreal val,
 void OsciCategoryLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QPen pen(m_pen);
-    if(isSelected())
-        pen.setColor(Qt::cyan);
+    if(m_pressed)
+        pen.setColor(Qt::red);
     painter->setPen(pen);
     QPointF pt2 = getPoint2();
     painter->drawLine(getPoint1(), pt2);
-
-    if(!m_label.isEmpty())
+    if(!m_label.isEmpty() && m_drawText != -1 )
     {
         QPointF pt2_;
         pt2_.setX(pt2.x() - (( qreal(m_label.size()) * 9.0) / 2.0 ));
         pt2_.setY(pt2.y() - 5.0);
-        painter->drawText(pt2_, m_label);
+        if(m_drawText == 0 || m_drawText == 1)
+            painter->drawText(pt2_, m_label);
         QPointF pt1 = getPoint1();
         pt1.setX(pt1.x() - (((qreal)m_label.size()*9.0) /2.0 ));
         pt1.setY(pt1.y() + 12.0);
-        painter->drawText(pt1, m_label);
-
+        if(m_drawText == 0 || m_drawText == 2)
+            painter->drawText(pt1, QString::number(m_chart->mapToValue(getPoint1()).x()));
     }
+    pen.setColor(Qt::cyan);
+    painter->setPen(pen);
+    painter->drawRect(boundingRect());
     Q_UNUSED(option);
     Q_UNUSED(widget);
 }
@@ -55,17 +59,21 @@ QPointF OsciCategoryLine::getPoint1() const
 {
     if(!m_osci) return QPointF();
     QPointF start;
+
     if(getOrientation() == Qt::Horizontal)
     {
         qreal xmin = m_chart->mapToValue(m_chart->plotArea().bottomLeft()).x();
         start = m_chart->mapToPosition(QPointF(xmin,m_y));
-    }
-    else
+    }    
+    else if(getOrientation() == Qt::Vertical)
     {
         qreal ymin = m_chart->mapToValue(m_chart->plotArea().bottomLeft()).y();
         start = m_chart->mapToPosition(QPointF(m_x,ymin));
     }
-    QPointF startItem = mapFromScene(start);
+    else
+        return start;
+
+    QPointF startItem = m_chart->mapFromScene(start);
     return startItem;
 }
 
@@ -78,12 +86,16 @@ QPointF OsciCategoryLine::getPoint2() const
         qreal xmax = m_chart->mapToValue(m_chart->plotArea().topLeft()).x();
         start = m_chart->mapToPosition(QPointF(xmax,m_y));
     }
-    else
+    else if(getOrientation() == Qt::Vertical)
     {
-        qreal ymax = m_chart->mapToValue(m_chart->plotArea().topLeft()).y();
+        QPointF tt = m_chart->plotArea().topLeft();
+        qreal ymax = m_chart->mapToValue(tt).y();
         start = m_chart->mapToPosition(QPointF(m_x, ymax));
     }
-    QPointF startItem = mapFromScene(start);
+    else
+        return start;
+
+    QPointF startItem = m_chart->mapFromScene(start);
     return startItem;
 }
 
@@ -93,31 +105,97 @@ QRectF OsciCategoryLine::boundingRect() const
     topLeft.setX(topLeft.x() - 2.5);
     QPointF bottomRight = getPoint1();
     bottomRight.setX(bottomRight.x() + 2.5);
-    return QRectF(getPoint1(),getPoint2());
+    return QRectF(topLeft,bottomRight);
 }
 
-void OsciCategoryLine::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void OsciCategoryLine::redraw()
 {
-    Q_UNUSED(event);
+    this->update(boundingRect());
+    m_chart->scene()->update(boundingRect());
+    return;
+    QRectF rect = boundingRect();
+    //увеличим площадь обновления
+    qreal koef = 1.2;
+    QSizeF sz = rect.size();
+    sz.setHeight(sz.height()*koef);
+    sz.setWidth(sz.width()*koef);
+    rect.setSize(sz);
+    m_chart->scene()->update(rect);
+    //this->scene()->update(rect);
 }
-
-void OsciCategoryLine::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
-{
-    Q_UNUSED(event);
-}
-
 
 void OsciCategoryLine::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    Q_UNUSED(event);
+    m_pressed = false;
+    qWarning() << "mouseReleaseEvent";
+    redraw();
+    event->ignore();
 }
 
 void OsciCategoryLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    Q_UNUSED(event);
+    m_pressed = true;
+    qWarning() << "mousePressEvent";
+    redraw();
+    event->accept();
 }
 
 void OsciCategoryLine::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    Q_UNUSED(event);
+    if(!m_pressed)
+        return;
+    qWarning() << "mouseMoveEvent";
+    QPointF valuePos = m_chart->mapToValue(event->scenePos());
+    if(m_pressed && getOrientation() == Qt::Horizontal)
+        setY(valuePos.y());
+    if(m_pressed && getOrientation() == Qt::Vertical)
+        setX(valuePos.x());
+    redraw();
+    event->accept();
+}
+
+void OsciCategoryLine::setX(qreal x)
+{
+    qreal xmin = m_chart->mapToValue(m_chart->plotArea().bottomLeft()).x();
+    if(x < xmin)
+        m_x = xmin;
+    else
+    {
+        qreal xmax = m_chart->mapToValue(m_chart->plotArea().topRight()).x();
+        if(x >= xmax)
+            m_x = xmax;
+        else
+            m_x = x;
+    }
+}
+
+void OsciCategoryLine::setY(qreal y)
+{
+    qreal ymin = m_chart->mapToValue(m_chart->plotArea().bottomLeft()).y();
+    if(y < ymin)
+        m_y = ymin;
+    else
+    {
+        qreal ymax = m_chart->mapToValue(m_chart->plotArea().topLeft()).y();
+        y > ymax ? m_y = ymax : m_y = y;
+    }
+}
+
+QPointF OsciCategoryLine::toScreen(const GraphicCoords& coords) const
+{
+    /*
+     * Returns the value in the series
+     * specified by series at the position specified by position in a chart.     *
+     *  QPointF mapToValue(const QPointF &position, QAbstractSeries *series = nullptr);
+     *
+     * Returns the position on the chart that corresponds
+     * to the value value in the series specified by series.
+    QPointF mapToPosition(const QPointF &value, QAbstractSeries *series = nullptr);*/
+    return m_chart->mapToValue(coords.toPointF());
+}
+
+GraphicCoords OsciCategoryLine::toGraphic(const QPointF &point) const
+{
+    QPointF pt = m_chart->mapToPosition(point);
+    return GraphicCoords(pt);
 }

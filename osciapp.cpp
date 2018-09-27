@@ -25,14 +25,14 @@ OsciApp::OsciApp(QWidget *parent) :
     resize(800, 600);
     m_timer = new QTimer(this);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(slotTimer()));
-    m_timer->start(1000);
+    m_timer->start(5000);
 }
 
 void OsciApp::slotTimer()
 {
     QVariant qVariant = QRandomGenerator::global()->bounded(15);
     int id = QRandomGenerator::global()->bounded(3);
-    qDebug() << "идентификатор тренда: "<< id;
+    //qDebug() << "идентификатор тренда: "<< id;
     ZLogData data(id, qVariant, QDateTime::currentDateTime());
     QVector<ZLogData> vdata;
     vdata.append(data);
