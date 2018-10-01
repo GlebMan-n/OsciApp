@@ -102,9 +102,9 @@ QPointF OsciCategoryLine::getPoint2() const
 QRectF OsciCategoryLine::boundingRect() const
 {
     QPointF topLeft = getPoint2();
-    topLeft.setX(topLeft.x() - 2.5);
+    topLeft.setX(topLeft.x() - 50);
     QPointF bottomRight = getPoint1();
-    bottomRight.setX(bottomRight.x() + 2.5);
+    bottomRight.setX(bottomRight.x() + 50);
     return QRectF(topLeft,bottomRight);
 }
 
