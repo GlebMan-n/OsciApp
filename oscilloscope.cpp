@@ -7,8 +7,9 @@
 #include "oscitools.h"
 #include "oscicategoryline.h"
 
-Oscilloscope::Oscilloscope()
+Oscilloscope::Oscilloscope(QWidget *parent/* = nullptr*/)
 {    
+    this->setParent(parent);
     m_chart = new OsciChart();
 
     m_chart->legend()->hide();
@@ -62,6 +63,8 @@ Oscilloscope::Oscilloscope()
     setChart(m_chart);
     setRenderHint(QPainter::Antialiasing);
     setRubberBand(QChartView::NoRubberBand);
+    setCacheMode(QGraphicsView::CacheBackground); // Кэш фона
+    setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
     //m_chart->setAnimationOptions(QChart::SeriesAnimations);
     m_axisX->setMax(m_timeMax);
     m_axisX->setMin(m_timeMin);
@@ -112,29 +115,6 @@ void Oscilloscope::slotNewData(QVector<ZLogData> arr)
            trend->addPoint(arr.at(i).m_data.toPointF(m_dtStart));
     }
     this->repaint();
-}
-
-bool Oscilloscope::viewportEvent(QEvent *event)
-{
-    if (event->type() == QEvent::TouchBegin) {
-        chart()->setAnimationOptions(QChart::NoAnimation);
-    }
-    return QChartView::viewportEvent(event);
-}
-
-void Oscilloscope::mousePressEvent(QMouseEvent *event)
-{
-    QChartView::mousePressEvent(event);
-}
-
-void Oscilloscope::mouseMoveEvent(QMouseEvent *event)
-{
-    QChartView::mouseMoveEvent(event);
-}
-
-void Oscilloscope::mouseReleaseEvent(QMouseEvent *event)
-{
-    QChartView::mouseReleaseEvent(event);
 }
 
 void Oscilloscope::keyReleaseEvent(QKeyEvent *event)
@@ -195,6 +175,7 @@ void Oscilloscope::keyPressEvent(QKeyEvent *event)
 void Oscilloscope::addCategoryY(qreal val, const QString& label)
 {
     OsciCategoryLine* line = new OsciCategoryLine(val, Qt::Horizontal, this, m_chart);
+
     line->show();
     if(m_catLines[label] != nullptr)
     {
@@ -202,7 +183,7 @@ void Oscilloscope::addCategoryY(qreal val, const QString& label)
         delete m_catLines[label];
     }
     m_catLines[label] = line;
-    this->scene()->addItem(line);    
+    this->scene()->addItem(line);
 }
 
 

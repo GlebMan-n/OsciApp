@@ -16,7 +16,7 @@ class QGraphicsLineItem;
 class Oscilloscope : public QChartView
 {
 public:
-    Oscilloscope();
+    Oscilloscope(QWidget *parent = nullptr);
     void update();
     TrendOscilloscope* findTrendById(int id);
     void setTimeMax(qreal timeMax) {m_timeMax = timeMax;}
@@ -33,20 +33,8 @@ public slots:
     void slotNewData(QVector<ZLogData> arr);
 
 protected:
-    bool viewportEvent(QEvent *event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
-    void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE
-    {
-        chart()->scroll(event->delta(), 0);
-        m_timeMin = m_timeMin - event->delta();
-        m_timeMax = m_timeMax - event->delta();
-        event->accept();
-        QChartView::wheelEvent(event);
-    }
 private:
     QList<TrendOscilloscope*>       m_trends;
     OsciChart*                      m_chart;

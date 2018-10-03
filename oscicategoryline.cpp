@@ -73,7 +73,7 @@ QPointF OsciCategoryLine::getPoint1() const
     else
         return start;
 
-    QPointF startItem = m_chart->mapFromScene(start);
+    QPointF startItem = m_chart->mapToScene(start);
     return startItem;
 }
 
@@ -95,33 +95,24 @@ QPointF OsciCategoryLine::getPoint2() const
     else
         return start;
 
-    QPointF startItem = m_chart->mapFromScene(start);
+    QPointF startItem = m_chart->mapToScene(start);
     return startItem;
 }
 
 QRectF OsciCategoryLine::boundingRect() const
 {
     QPointF topLeft = getPoint2();
-    topLeft.setX(topLeft.x() - 50);
+    topLeft.setX(topLeft.x() - 10);
     QPointF bottomRight = getPoint1();
-    bottomRight.setX(bottomRight.x() + 50);
+    bottomRight.setX(bottomRight.x() + 10);
     return QRectF(topLeft,bottomRight);
 }
 
 void OsciCategoryLine::redraw()
 {
-    this->update(boundingRect());
-    m_chart->scene()->update(boundingRect());
-    return;
-    QRectF rect = boundingRect();
-    //увеличим площадь обновления
-    qreal koef = 1.2;
-    QSizeF sz = rect.size();
-    sz.setHeight(sz.height()*koef);
-    sz.setWidth(sz.width()*koef);
-    rect.setSize(sz);
-    m_chart->scene()->update(rect);
-    //this->scene()->update(rect);
+    this->update();
+    m_chart->scene()->update(m_chart->scene()->sceneRect());
+    //m_chart->scene()->update(boundingRect());
 }
 
 void OsciCategoryLine::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -129,7 +120,8 @@ void OsciCategoryLine::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     m_pressed = false;
     qWarning() << "mouseReleaseEvent";
     redraw();
-    event->ignore();
+    //event->accept();
+    QGraphicsItem::mouseReleaseEvent(event);
 }
 
 void OsciCategoryLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -150,6 +142,10 @@ void OsciCategoryLine::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         setY(valuePos.y());
     if(m_pressed && getOrientation() == Qt::Vertical)
         setX(valuePos.x());
+    QPointF ptf;
+    ptf.setX(event->pos().x());
+    ptf.setY(this->pos().y());
+    this->setPos(mapToScene(ptf));
     redraw();
     event->accept();
 }
