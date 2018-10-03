@@ -34,7 +34,7 @@ void OsciCategoryLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         pen.setColor(Qt::red);
     painter->setPen(pen);
     QPointF pt2 = getPoint2();
-    painter->drawLine(getPoint1(), pt2);
+    painter->drawLine(getPoint2(), getPoint1());
     if(!m_label.isEmpty() && m_drawText != -1 )
     {
         QPointF pt2_;
@@ -73,7 +73,7 @@ QPointF OsciCategoryLine::getPoint1() const
     else
         return start;
 
-    QPointF startItem = m_chart->mapToScene(start);
+    QPointF startItem = mapToScene(start);
     return startItem;
 }
 
@@ -95,7 +95,7 @@ QPointF OsciCategoryLine::getPoint2() const
     else
         return start;
 
-    QPointF startItem = m_chart->mapToScene(start);
+    QPointF startItem = mapToScene(start);
     return startItem;
 }
 
@@ -112,7 +112,6 @@ void OsciCategoryLine::redraw()
 {
     this->update();
     m_chart->scene()->update(m_chart->scene()->sceneRect());
-    //m_chart->scene()->update(boundingRect());
 }
 
 void OsciCategoryLine::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -120,15 +119,13 @@ void OsciCategoryLine::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     m_pressed = false;
     qWarning() << "mouseReleaseEvent";
     redraw();
-    //event->accept();
-    QGraphicsItem::mouseReleaseEvent(event);
+    event->accept();
 }
 
 void OsciCategoryLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     m_pressed = true;
-    qWarning() << "mousePressEvent";
-    redraw();
+    qWarning() << "mouseMoveEvent";
     event->accept();
 }
 
@@ -137,15 +134,16 @@ void OsciCategoryLine::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     if(!m_pressed)
         return;
     qWarning() << "mouseMoveEvent";
-    QPointF valuePos = m_chart->mapToValue(event->scenePos());
+    /*QPointF valuePos = m_chart->mapToValue(event->scenePos());
     if(m_pressed && getOrientation() == Qt::Horizontal)
         setY(valuePos.y());
     if(m_pressed && getOrientation() == Qt::Vertical)
-        setX(valuePos.x());
+        setX(valuePos.x());*/
     QPointF ptf;
-    ptf.setX(event->pos().x());
+    QPointF valuePt = m_chart->mapToValue(event->pos());
+    ptf.setX(m_chart->mapToPosition(valuePt).x());
     ptf.setY(this->pos().y());
-    this->setPos(mapToScene(ptf));
+    this->setPos(ptf);
     redraw();
     event->accept();
 }
