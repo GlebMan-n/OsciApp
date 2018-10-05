@@ -12,12 +12,8 @@ OsciApp::OsciApp(QWidget *parent) :
     ui(new Ui::OsciApp)
 {
     ui->setupUi(this);
-
-    m_oscilloscope = new Oscilloscope();   
-
-    m_oscilloscope->addCategoryX(600,QObject::tr("все"));
-    //m_oscilloscope->addCategory(5,16, QObject::tr("норма"));
-    //m_oscilloscope->addCategory(16,QObject::tr("максимум"));
+    m_oscilloscope = new Oscilloscope();
+    m_oscilloscope->addVCategory(600,QObject::tr("все"));
     m_oscilloscope->update();
     this->setCentralWidget(m_oscilloscope);
     this->grabGesture(Qt::PanGesture);

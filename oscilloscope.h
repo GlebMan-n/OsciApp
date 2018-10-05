@@ -23,9 +23,9 @@ public:
     void setValMax(qreal valMax)  {m_valMax = valMax;}
     void setTickCountTime(int tickCountTime)  {m_TickCountTime = tickCountTime;}
     //добавляем линию категории по горизонтали
-    void addCategoryY(qreal val, const QString& label = QObject::tr("нет"));
+    void addHCategory(qreal val, const QString& label = QObject::tr("нет"));
     //добавляем линию категории по вертикали
-    void addCategoryX(qreal val, const QString& label = QObject::tr("нет"));
+    void addVCategory(qreal val, const QString& label = QObject::tr("нет"));
     void setTickCountVal(int tickCountVal)  { m_TickCountVal = tickCountVal;}
     void addTrend(TrendOscilloscope* trend);
     qreal getValMax() const {return m_valMax; }

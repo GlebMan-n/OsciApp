@@ -6,6 +6,13 @@
 #include <QtGui/QFont>
 #include <QGraphicsItem>
 #include <QPen>
+#include <QObject>
+#include <QGraphicsItem>
+#include <QPainter>
+#include <QGraphicsSceneMouseEvent>
+#include <QDebug>
+#include <QCursor>
+
 QT_BEGIN_NAMESPACE
 class QGraphicsSceneMouseEvent;
 QT_END_NAMESPACE
@@ -13,71 +20,55 @@ QT_END_NAMESPACE
 class OsciChart;
 class Oscilloscope;
 
-struct GraphicCoords
+class OsciCategoryLine : public QObject, public QGraphicsItem
 {
-    GraphicCoords(qreal x, qreal y)
-    {
-        m_x = x;
-        m_y = y;
-    }
-    GraphicCoords(QPointF point)
-    {
-        m_x = point.x();
-        m_y = point.y();
-    }
-
-    QPointF toPointF() const
-    {
-        return QPointF(m_x,m_y);
-    }
-
-    qreal m_x;
-    qreal m_y;
-};
-
-class OsciCategoryLine : public QGraphicsItem
-{
+    Q_OBJECT
 public:
-    OsciCategoryLine(qreal val,
-                     Qt::Orientation orientaton,
-                     Oscilloscope* osci,
-                     OsciChart *parent);
-    //принимает значения графиков
-    void setX(qreal x);// { m_x = x; }
-    //принимает значения графиков
-    void setY(qreal y);// { m_y = y; }
-    void setMaxY(qreal max_y) {m_maxY = max_y;}
-    void setLabel(const QString& label) {m_label = label;}
+    explicit OsciCategoryLine(QObject *parent = nullptr);
+    ~OsciCategoryLine();
     void setOrientation(Qt::Orientation orientation) { m_orientation = orientation; }
     Qt::Orientation getOrientation() const {return m_orientation;}
-    QRectF boundingRect() const Q_DECL_OVERRIDE;
-    //-1 не отображать, 0 отображать сверху и снизу, 1 только сверху, 2только снизу
-    void setTextDrawType(short type) {m_drawText = type;}
-    void redraw();
-    QPointF toScreen(const GraphicCoords& coords) const;
-    GraphicCoords toGraphic(const QPointF &point) const;
-protected:
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE;
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
+    qreal getWidth() const;
+    void setWidth(const qreal &width);
+    QColor getColor() const;
+    void setColor(const QColor &color);
+    QPointF getCurScenePoint(QGraphicsSceneMouseEvent *event);
+    void setTextDrawType(short type) {m_drawText = type;} //-1 не отображать, 0 отображать сверху и снизу, 1 только сверху, 2только снизу
+    QString getLabel() const;
+    void setLabel(const QString &label);
+    QLineF getLine() const;
+    bool needToRecalc(const QPointF &point);
+    OsciChart *getChart() const;
+    void setChart(OsciChart *chart);
+
+    Oscilloscope *getOsci() const;
+    void setOsci(Oscilloscope *osci);
+
+    QPointF getValPoint() const;
+    void setValPoint(const QPointF &valPoint);
+
+signals:
 
 private:
-    QPointF getPoint1() const;
-    QPointF getPoint2() const;
+    QRectF boundingRect() const;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 private:
-    Oscilloscope*   m_osci;
     OsciChart*      m_chart;
-    QColor          m_defColor;
-    QColor          m_selColor;
-    QPen            m_pen;
-    qreal           m_x;
-    qreal           m_y;
-    qreal           m_maxY;
+    Oscilloscope*   m_osci;
     Qt::Orientation m_orientation;
-    QString         m_label;
-    bool            m_pressed; //-1 не отображать, 0 отображать сверху и снизу, 1 только сверху, 2только снизу
+    qreal           m_width;
+    QColor          m_color;
+    QPen            m_pen;
     short           m_drawText;
+    QString         m_label;
+    bool            m_pressed;
+    QPointF         m_valPoint; //последняя точка движения для графика
+
+public slots:
+    void slotPlotAreaChanged(const QRectF &plotArea);
 };
 
 #endif // OSCICATEGORYLINE_H

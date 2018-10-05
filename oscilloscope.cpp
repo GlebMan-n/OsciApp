@@ -106,8 +106,6 @@ TrendOscilloscope* Oscilloscope::findTrendById(int id)
 
 void Oscilloscope::slotNewData(QVector<ZLogData> arr)
 {
-    return;
-    update();
     for(auto i = 0; i < arr.size(); i++)
     {
        TrendOscilloscope* trend = findTrendById(arr.at(i).m_id);
@@ -172,35 +170,27 @@ void Oscilloscope::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void Oscilloscope::addCategoryY(qreal val, const QString& label)
+void Oscilloscope::addHCategory(qreal val, const QString& label)
 {
-    OsciCategoryLine* line = new OsciCategoryLine(val, Qt::Horizontal, this, m_chart);
-
-    line->show();
-    if(m_catLines[label] != nullptr)
-    {
-        this->scene()->removeItem(m_catLines[label]);
-        delete m_catLines[label];
-    }
-    m_catLines[label] = line;
-    this->scene()->addItem(line);
+    //TODO
+    Q_UNUSED(val);
+    Q_UNUSED(label);
 }
 
 
-void Oscilloscope::addCategoryX(qreal val, const QString& label)
+void Oscilloscope::addVCategory(qreal val, const QString& label)
 {
-    OsciCategoryLine* line = new OsciCategoryLine(val, Qt::Vertical, this, m_chart);
-    line->setLabel(label);
-    line->setMaxY(m_valMax);
-    line->show();
-    if(m_catLines[label] != nullptr)
-    {
-        this->scene()->removeItem(m_catLines[label]);
-        delete m_catLines[label];
-    }
-
-    m_catLines[label] = line;
-    this->scene()->addItem(line);
+    OsciCategoryLine *item = new OsciCategoryLine();
+    item->setChart(m_chart);
+    item->setOsci(this);
+    item->setOrientation(Qt::Vertical);
+    QPointF ptf = m_chart->mapToPosition(QPointF(val,val));
+    ptf = QPointF(ptf.x(), m_chart->plotArea().center().y());
+    item->setPos(ptf);
+    item->setValPoint(m_chart->mapToValue(ptf));
+    item->setLabel(label);
+    item->setTextDrawType(0);
+    this->scene()->addItem(item);
 }
 
 /*
