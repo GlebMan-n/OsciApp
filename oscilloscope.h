@@ -29,6 +29,19 @@ public:
     void setTickCountVal(int tickCountVal)  { m_TickCountVal = tickCountVal;}
     void addTrend(TrendOscilloscope* trend);
     qreal getValMax() const {return m_valMax; }
+private:
+    //нарисовать метки пересечений
+    void drawAllLabels();
+    //найти все метки пересечений с отсекающими прямыми (прямыми категорий)
+    QVector<QPointF> findAllLabelPoints();
+    //нарисовать метку пересечения
+    bool drawLabel(const QPointF &labelPoint);
+    //очистить метки пересечений
+    void clearLegacyLabels(const QVector<QPointF> &labelPoint);
+    //найдем точки, которые есть в sourcePoints и которых нет в newPoints
+    //вернем их для дальнейшего удаления
+    QVector<QPointF> findLegacyPoints(const QVector<QPointF> &newPoints, const QVector<QPointF> &sourcePoints );
+    QVector<QLineF> getTrendsLines();
 public slots:
     void slotNewData(QVector<ZLogData> arr);
 
@@ -50,7 +63,8 @@ private:
     bool                            m_autoupdate;
     QGraphicsLineItem*              m_categoryLine;
     QList<OsciTooltip*>             m_tooltips;
-    QMap<QString,OsciCategoryLine*> m_catLines;
+    QVector<OsciCategoryLine*>      m_catLines;
+    QVector<QPointF>                m_labelPoints;
 };
 
 #endif // OSCILLOSCOPE_H

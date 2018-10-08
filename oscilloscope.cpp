@@ -25,7 +25,7 @@ Oscilloscope::Oscilloscope(QWidget *parent/* = nullptr*/)
     m_TickCountVal = 5;
 
     QVector<QPointF> vec ;
-    TrendOscilloscope* trend = new TrendOscilloscope(this, 0, true, 10);
+    TrendOscilloscope* trend = new TrendOscilloscope(this, 0);
     addTrend(trend);
 
     addTrend(new TrendOscilloscope(this, 1, true, 10));
@@ -88,6 +88,7 @@ void Oscilloscope::update()
         m_axisX->setMax(m_timeMax);
         m_axisX->setMin(m_timeMin);
     }
+    drawAllLabels();
     this->scene()->update(this->rect());
 }
 
@@ -190,43 +191,83 @@ void Oscilloscope::addVCategory(qreal val, const QString& label)
     item->setValPoint(m_chart->mapToValue(ptf));
     item->setLabel(label);
     item->setTextDrawType(0);
+    m_catLines.push_back(item);
     this->scene()->addItem(item);
 }
 
-/*
-void Oscilloscope::markIntersectionPoints()
-{
-    //контрольная линиялиния
-    if(!m_selectedItemLine)
-        return;
-    //удаляем старые метки
-    clearTooltips();
-    QPointF point1 = this->chart()->mapToValue(m_selectedItemLine->line().p1());
-    QPointF point2 = this->chart()->mapToValue(m_selectedItemLine->line().p2());
-    QLineF controlLine(point1,point2);
-    //cписок линий тренда
-    QVector<QLineF> m_lines = getTrendsLines();
-    //обходим все отрезки трендов и сравниваем с контрольным отрезком
-    //получая точки пересечения
-    for(auto i = 0; i < m_lines.size(); i++)
-    {
-        QPointF intersectionPoint;
-        //проверка на пересечение
-        QLineF lineToIntersect = m_lines.at(i);
-        int iRes = controlLine.intersect(lineToIntersect, &intersectionPoint);
-        //если отрезки пересеклись
-        if(iRes == QLineF::BoundedIntersection)
-            //сразу отображаем метки
-            toolTip(intersectionPoint);
-    }
-    this->repaint();
-}*/
 
-/*
+void Oscilloscope::drawAllLabels()
+{
+    //находим обновленные точки
+    QVector<QPointF> newLabelPoints = findAllLabelPoints();
+    //QVector<QPointF> legacyPoints = findLegacyPoints(newLabelPoints, m_labelPoints);
+    clearLegacyLabels(m_labelPoints);
+    for (auto i = 0; i < newLabelPoints.size(); i++)
+        drawLabel(newLabelPoints.at(i));
+}
+
+QVector<QPointF> Oscilloscope::findAllLabelPoints()
+{
+    QVector<QPointF> result;
+    //получаем все линии трендов
+    QVector<QLineF> lines = getTrendsLines();
+    //перебор линий трендов
+    for(auto i = 0; i < lines.size(); i++)
+    {
+        //перебор линий категорий
+        for(auto j = 0; j < m_catLines.size(); j++)
+        {
+            OsciCategoryLine* catLine = m_catLines.at(j);
+            QLineF line = catLine->getLine();
+            QPointF intersectionPoint;
+            int iRes = lines.at(i).intersect(line, &intersectionPoint);
+            if(iRes == QLineF::BoundedIntersection)
+                result.append(intersectionPoint);
+         }
+    }
+    return result;
+}
+
+bool Oscilloscope::drawLabel(const QPointF &labelPoint)
+{
+    OsciTooltip* tooltip = new OsciTooltip(m_chart);
+    tooltip->setText(QString("X: %1 \nY: %2 ").arg(labelPoint.x()).arg(labelPoint.y()));
+    tooltip->setAnchor(labelPoint);
+    tooltip->setZValue(11);
+    tooltip->updateGeometry();
+    tooltip->show();
+    m_tooltips.append(tooltip);
+    m_labelPoints.push_back(labelPoint);
+    return false;
+}
+
+QVector<QPointF> Oscilloscope::findLegacyPoints(const QVector<QPointF> &newPoints, const QVector<QPointF> &sourcePoints )
+{
+    QVector<QPointF> result;
+    for(auto i = 0; i < sourcePoints.size(); i++)
+    {
+        if(!newPoints.contains(sourcePoints.at(i)))
+            result.push_back(sourcePoints.at(i));
+    }
+}
+
+void Oscilloscope::clearLegacyLabels(const QVector<QPointF> &labelPoint)
+{
+    for(auto i = 0; i < m_tooltips.size(); i++)
+    {
+        OsciTooltip* tooltip = m_tooltips.at(i);
+        if(!tooltip)
+            continue;
+        tooltip->hide();
+        delete tooltip;
+        tooltip = nullptr;
+    }
+    m_labelPoints.clear();
+    m_tooltips.clear();
+}
+
 QVector<QLineF> Oscilloscope::getTrendsLines()
 {
-    //TODO: перебор трендов
-    //выборка всех отрезков
     QVector<QLineF> result;
     for(auto i = 0; i < m_trends.size(); i++)
     {
@@ -240,34 +281,3 @@ QVector<QLineF> Oscilloscope::getTrendsLines()
     }
     return result;
 }
-*/
-
-/*
-void Oscilloscope::clearTooltips()
-{
-    for(auto i = 0; i < m_tooltips.size(); i++)
-    {
-        OsciTooltip* tooltip = m_tooltips.at(i);
-        if(!tooltip)
-            continue;
-        tooltip->hide();
-        delete tooltip;
-        tooltip = nullptr;
-    }
-    m_tooltips.clear();
-    this->repaint();
-}
-*/
-
-/*
-void Oscilloscope::toolTip(QPointF point)
-{
-    OsciTooltip* tooltip = new OsciTooltip(m_chart);
-    tooltip->setText(QString("X: %1 \nY: %2 ").arg(point.x()).arg(point.y()));
-    tooltip->setAnchor(point);
-    tooltip->setZValue(11);
-    tooltip->updateGeometry();
-    tooltip->show();
-    m_tooltips.append(tooltip);
-}
-*/

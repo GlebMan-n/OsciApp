@@ -207,8 +207,8 @@ QLineF OsciCategoryLine::getLine() const
         QPointF bL = m_chart->plotArea().bottomLeft();
         QPointF p1(m_chart->mapFromScene(pos()).x(),tR.y());
         QPointF p2(m_chart->mapFromScene(pos()).x(),bL.y());
-        QPointF pt1 = mapFromScene(m_chart->mapToScene(p2));
-        QPointF pt2 = mapFromScene(m_chart->mapToScene(p1));
+        QPointF pt1 = m_chart->mapToValue(p2);
+        QPointF pt2 = m_chart->mapToValue(p1);
         line = QLineF(pt1,pt2);
     }
     else if(getOrientation() == Qt::Horizontal)
