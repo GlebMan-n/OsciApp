@@ -143,7 +143,8 @@ void Oscilloscope::keyPressEvent(QKeyEvent *event)
         m_axisY->setMax(m_valMax);
         m_axisY->setMin(m_valMin);
         m_autoupdate = false;
-        this->scene()->update(this->rect());
+        this->scene()->update();
+        m_chart->plotAreaChanged(m_chart->plotArea());
         break;
     case Qt::Key_Plus:
         m_timeMax = m_timeMax - m_timeMax/2;
@@ -171,22 +172,18 @@ void Oscilloscope::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void Oscilloscope::addHCategory(qreal val, const QString& label)
-{
-    //TODO
-    Q_UNUSED(val);
-    Q_UNUSED(label);
-}
-
-
-void Oscilloscope::addVCategory(qreal val, const QString& label)
+void Oscilloscope::addCategory(qreal val,Qt::Orientation orientation , const QString& label)
 {
     OsciCategoryLine *item = new OsciCategoryLine();
     item->setChart(m_chart);
     item->setOsci(this);
-    item->setOrientation(Qt::Vertical);
+    item->setOrientation(orientation);
     QPointF ptf = m_chart->mapToPosition(QPointF(val,val));
-    ptf = QPointF(ptf.x(), m_chart->plotArea().center().y());
+
+    if(orientation ==Qt::Horizontal)
+        ptf = QPointF(m_chart->plotArea().center().x(), ptf.y());
+    else if(orientation ==Qt::Vertical)
+        ptf = QPointF(ptf.x(), m_chart->plotArea().center().y());
     item->setPos(ptf);
     item->setValPoint(m_chart->mapToValue(ptf));
     item->setLabel(label);
@@ -195,13 +192,21 @@ void Oscilloscope::addVCategory(qreal val, const QString& label)
     this->scene()->addItem(item);
 }
 
+void Oscilloscope::addHCategory(qreal val, const QString& label)
+{
+    addCategory(val,Qt::Horizontal,label);
+}
+
+void Oscilloscope::addVCategory(qreal val, const QString& label)
+{
+    addCategory(val,Qt::Vertical,label);
+}
 
 void Oscilloscope::drawAllLabels()
 {
     //находим обновленные точки
     QVector<QPointF> newLabelPoints = findAllLabelPoints();
-    //QVector<QPointF> legacyPoints = findLegacyPoints(newLabelPoints, m_labelPoints);
-    clearLegacyLabels(m_labelPoints);
+    clearLegacyLabels();
     for (auto i = 0; i < newLabelPoints.size(); i++)
         drawLabel(newLabelPoints.at(i));
 }
@@ -241,17 +246,7 @@ bool Oscilloscope::drawLabel(const QPointF &labelPoint)
     return false;
 }
 
-QVector<QPointF> Oscilloscope::findLegacyPoints(const QVector<QPointF> &newPoints, const QVector<QPointF> &sourcePoints )
-{
-    QVector<QPointF> result;
-    for(auto i = 0; i < sourcePoints.size(); i++)
-    {
-        if(!newPoints.contains(sourcePoints.at(i)))
-            result.push_back(sourcePoints.at(i));
-    }
-}
-
-void Oscilloscope::clearLegacyLabels(const QVector<QPointF> &labelPoint)
+void Oscilloscope::clearLegacyLabels()
 {
     for(auto i = 0; i < m_tooltips.size(); i++)
     {

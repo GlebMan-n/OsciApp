@@ -13,7 +13,7 @@ OsciApp::OsciApp(QWidget *parent) :
 {
     ui->setupUi(this);
     m_oscilloscope = new Oscilloscope();
-    m_oscilloscope->addVCategory(600,QObject::tr("все"));
+    m_oscilloscope->addHCategory(8,QObject::tr("все"));
     m_oscilloscope->update();
     this->setCentralWidget(m_oscilloscope);
     this->grabGesture(Qt::PanGesture);

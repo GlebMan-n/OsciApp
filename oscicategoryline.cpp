@@ -38,7 +38,11 @@ QRectF OsciCategoryLine::boundingRect() const
     }
     else if(getOrientation() == Qt::Horizontal)
     {
-        //To Do: implementation of horizontal orientation
+        QPointF tR = m_chart->plotArea().topRight();
+        QPointF bL = m_chart->plotArea().bottomLeft();
+        QPointF bottomRight(tR.x() + 5.0, pos().y() + 15);
+        QPointF topLeft(bL.x() - 5.0, pos().y() - 15) ;
+        result = QRectF(mapFromScene(topLeft),mapFromScene(bottomRight));
     }
     return result;
 }
@@ -81,7 +85,36 @@ void OsciCategoryLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     }
     else if(getOrientation() == Qt::Horizontal)
     {
-        //To Do: implementation of horizontal orientation
+        QPointF tR = m_chart->plotArea().topRight();
+        QPointF bL = m_chart->plotArea().bottomLeft();
+        QPointF p1(m_chart->mapFromScene(bL.x(), pos().y()));
+        QPointF p2(m_chart->mapFromScene(tR.x(), pos().y()));
+        QPointF pt1 = mapFromScene(m_chart->mapToScene(p2));
+        QPointF pt2 = mapFromScene(m_chart->mapToScene(p1));
+        line = QLineF(pt1,pt2);
+
+        if(!m_pressed && !m_label.isEmpty() && (m_drawText == 0 || m_drawText == 1))
+        {
+            QFontMetrics fm(painter->font());
+            qreal width = fm.width(m_label) + fm.width(m_label.at(0));
+            pt2.setX(pt2.x() - width);
+            pt2.setY(pt2.y() + 5.0);
+            painter->drawText(pt2, m_label);
+        }
+
+        if(!m_pressed && (m_drawText == 0 || m_drawText == 2))
+        {
+            int y = (int) m_chart->mapToValue(m_chart->mapFromScene(pos())).y();
+            QString valS = QString::number(y);
+            if(!valS.isEmpty())
+            {
+                QFontMetrics fm(painter->font());
+                qreal width = fm.width(valS.at(0));
+                pt1.setX(pt1.x() + width);
+                pt1.setY(pt1.y() + 5.0);
+                painter->drawText(pt1, valS);
+            }
+        }
     }
     if(!line.isNull())
         painter->drawLine(line);
@@ -175,15 +208,28 @@ QPointF OsciCategoryLine::getCurScenePoint(QGraphicsSceneMouseEvent *event)
     QPointF pos = m_chart->mapToValue(mapToScene(event->pos()));
     QPointF bottomLeft = m_chart->mapToValue(m_chart->plotArea().bottomLeft());
     QPointF topRight = m_chart->mapToValue(m_chart->plotArea().topRight());
-
-    if(pos.x() < bottomLeft.x())
-        pos.setX(bottomLeft.x());
-    if(pos.x() > topRight.x())
-        pos.setX(topRight.x());
-    if(pos.y() > bottomLeft.y())
-        pos.setY(bottomLeft.y());
-    if(pos.y() < topRight.y())
-        pos.setY(topRight.y());
+    if(getOrientation() == Qt::Vertical)
+    {
+        if(pos.x() < bottomLeft.x())
+            pos.setX(bottomLeft.x());
+        if(pos.x() > topRight.x())
+            pos.setX(topRight.x());
+        if(pos.y() > bottomLeft.y())
+            pos.setY(bottomLeft.y());
+        if(pos.y() < topRight.y())
+            pos.setY(topRight.y());
+    }
+    else if(getOrientation() == Qt::Horizontal)
+    {
+        if(pos.x() < bottomLeft.x())
+            pos.setX(bottomLeft.x());
+        if(pos.x() > topRight.x())
+            pos.setX(topRight.x());
+        if(pos.y() > topRight.y())
+            pos.setY(topRight.y());
+        if(pos.y() < bottomLeft.y())
+            pos.setY(bottomLeft.y());
+    }
     return m_chart->mapToPosition(pos);
 }
 
@@ -213,7 +259,13 @@ QLineF OsciCategoryLine::getLine() const
     }
     else if(getOrientation() == Qt::Horizontal)
     {
-        //
+        QPointF tR = m_chart->plotArea().topRight();
+        QPointF bL = m_chart->plotArea().bottomLeft();
+        QPointF p1(m_chart->mapFromScene(tR.x(), pos().y()));
+        QPointF p2(m_chart->mapFromScene(bL.x(), pos().y()));
+        QPointF pt1 = m_chart->mapToValue(p2);
+        QPointF pt2 = m_chart->mapToValue(p1);
+        line = QLineF(pt1,pt2);
     }
     return line;
 }

@@ -23,6 +23,7 @@ public:
     void setValMax(qreal valMax)  {m_valMax = valMax;}
     void setTickCountTime(int tickCountTime)  {m_TickCountTime = tickCountTime;}
     //добавляем линию категории по горизонтали
+    void addCategory(qreal val,Qt::Orientation orientation , const QString& label = QObject::tr("нет"));
     void addHCategory(qreal val, const QString& label = QObject::tr("нет"));
     //добавляем линию категории по вертикали
     void addVCategory(qreal val, const QString& label = QObject::tr("нет"));
@@ -37,10 +38,7 @@ private:
     //нарисовать метку пересечения
     bool drawLabel(const QPointF &labelPoint);
     //очистить метки пересечений
-    void clearLegacyLabels(const QVector<QPointF> &labelPoint);
-    //найдем точки, которые есть в sourcePoints и которых нет в newPoints
-    //вернем их для дальнейшего удаления
-    QVector<QPointF> findLegacyPoints(const QVector<QPointF> &newPoints, const QVector<QPointF> &sourcePoints );
+    void clearLegacyLabels();
     QVector<QLineF> getTrendsLines();
 public slots:
     void slotNewData(QVector<ZLogData> arr);

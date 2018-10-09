@@ -70,21 +70,6 @@ void OsciTooltip::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     painter->drawText(m_textRect, m_text);
 }
 
-void OsciTooltip::mousePressEvent(QGraphicsSceneMouseEvent *event)
-{
-    event->setAccepted(true);
-}
-
-void OsciTooltip::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
-{
-    if (event->buttons() & Qt::LeftButton){
-        setPos(mapToParent(event->pos() - event->buttonDownPos(Qt::LeftButton)));
-        event->setAccepted(true);
-    } else {
-        event->setAccepted(false);
-    }
-}
-
 void OsciTooltip::setText(const QString &text)
 {
     m_text = text;
