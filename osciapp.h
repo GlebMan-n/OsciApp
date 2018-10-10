@@ -17,14 +17,43 @@ class OsciApp : public QMainWindow
 public:
     explicit OsciApp(QWidget *parent = nullptr);
     ~OsciApp();
+private:
+    QMenu*      m_file;
+    QMenu*      m_view;
+    QMenu*      m_test;
+    QMenu*      m_help;
+
+    QAction*    m_zoomInAction;
+    QAction*    m_zoomOutAction;
+    QAction*    m_stopTimerAction;
+    QAction*    m_startTimerAction;
+    QAction*    m_setTimerIntervalAction;
+    QAction*    m_helpAction;
+    QAction*    m_autoUpdateAction;
+    QAction*    m_addVCatAction;
+    QAction*    m_addHCatAction;
+    QAction*    m_refreshAction;
 
 private slots:
     void slotTimer();
+    void slotZoomIn();
+    void slotZoomOut();
+    void slotStopTimer();
+    void slotStartTimer();
+    void slotSetTimerInterval();
+    void slotHelp();
+    void slotAutoUpdate();
+    void slotAddVCat();
+    void slotAddHCat();
+    void slotRefresh();
+
+
 
 private:
-    Ui::OsciApp *ui;
-    QTimer* m_timer;
-    Oscilloscope* m_oscilloscope;
+    Ui::OsciApp*    ui;
+    QTimer*         m_timer;
+    Oscilloscope*   m_oscilloscope;
+    int             m_timeout;
 };
 
 #endif // OSCIAPP_H

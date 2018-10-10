@@ -8,6 +8,7 @@
 #include <QtCharts/QCategoryAxis>
 #include <QLineF>
 #include <QVector>
+#include <QMenuBar>
 
 class OsciTooltip;
 class OsciCategoryLine;
@@ -20,6 +21,8 @@ public:
     void update();
     TrendOscilloscope* findTrendById(int id);
     void setTimeMax(qreal timeMax) {m_timeMax = timeMax;}
+    qreal getTimeMax() const;
+    qreal getTimeMin() const;
     void setValMax(qreal valMax)  {m_valMax = valMax;}
     void setTickCountTime(int tickCountTime)  {m_TickCountTime = tickCountTime;}
     //добавляем линию категории по горизонтали
@@ -29,7 +32,16 @@ public:
     void addVCategory(qreal val, const QString& label = QObject::tr("нет"));
     void setTickCountVal(int tickCountVal)  { m_TickCountVal = tickCountVal;}
     void addTrend(TrendOscilloscope* trend);
-    qreal getValMax() const {return m_valMax; }
+    qreal getValMax() const;
+    qreal getValMin() const;
+
+    void refresh();
+    void zoomIn();
+    void zoomOut();
+    void mooveLeft();
+    void mooveRight();
+    void autoupdate();
+
 private:
     //нарисовать метки пересечений
     void drawAllLabels();
@@ -63,6 +75,7 @@ private:
     QList<OsciTooltip*>             m_tooltips;
     QVector<OsciCategoryLine*>      m_catLines;
     QVector<QPointF>                m_labelPoints;
+    QMenuBar*                       m_menu;
 };
 
 #endif // OSCILLOSCOPE_H

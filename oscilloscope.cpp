@@ -63,9 +63,8 @@ Oscilloscope::Oscilloscope(QWidget *parent/* = nullptr*/)
     setChart(m_chart);
     setRenderHint(QPainter::Antialiasing);
     setRubberBand(QChartView::NoRubberBand);
-    setCacheMode(QGraphicsView::CacheBackground); // Кэш фона
+    setCacheMode(QGraphicsView::CacheBackground);
     setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
-    //m_chart->setAnimationOptions(QChart::SeriesAnimations);
     m_axisX->setMax(m_timeMax);
     m_axisX->setMin(m_timeMin);
     m_axisY->setMax(m_valMax);
@@ -128,40 +127,70 @@ void Oscilloscope::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
+void Oscilloscope::refresh()
+{
+    m_timeMax = 1200;
+    m_valMax = 16;
+    m_valMin = 0;
+    m_timeMin = 0;
+    m_TickCountTime = 5;
+    m_TickCountVal = 5;
+    m_axisX->setMax(m_timeMax);
+    m_axisX->setMin(m_timeMin);
+    m_axisY->setMax(m_valMax);
+    m_axisY->setMin(m_valMin);
+    m_autoupdate = false;
+    this->scene()->update();
+    m_chart->plotAreaChanged(m_chart->plotArea());
+}
+
+void Oscilloscope::zoomIn()
+{
+    m_timeMax = m_timeMax - m_timeMax/2;
+}
+
+void Oscilloscope::zoomOut()
+{
+    m_timeMax = m_timeMax + m_timeMax/2;
+}
+
+void Oscilloscope::mooveLeft()
+{
+    m_timeMin = m_timeMin - m_timeMax/2;
+    m_timeMax = m_timeMax - m_timeMax/2;
+}
+
+void Oscilloscope::mooveRight()
+{
+    m_timeMin = m_timeMin + m_timeMax/2;
+    m_timeMax = m_timeMax + m_timeMax/2;
+}
+
+void Oscilloscope::autoupdate()
+{
+    m_autoupdate = !m_autoupdate;
+}
+
 void Oscilloscope::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
     case Qt::Key_Escape:
-        m_timeMax = 1200;
-        m_valMax = 16;
-        m_valMin = 0;
-        m_timeMin = 0;
-        m_TickCountTime = 5;
-        m_TickCountVal = 5;
-        m_axisX->setMax(m_timeMax);
-        m_axisX->setMin(m_timeMin);
-        m_axisY->setMax(m_valMax);
-        m_axisY->setMin(m_valMin);
-        m_autoupdate = false;
-        this->scene()->update();
-        m_chart->plotAreaChanged(m_chart->plotArea());
+        refresh();
         break;
     case Qt::Key_Plus:
-        m_timeMax = m_timeMax - m_timeMax/2;
+        zoomIn();
         break;
     case Qt::Key_Minus:
-        m_timeMax = m_timeMax + m_timeMax/2;
+        zoomOut();
         break;
     case Qt::Key_Left:
-        m_timeMin = m_timeMin - m_timeMax/2;
-        m_timeMax = m_timeMax - m_timeMax/2;
+        mooveLeft();
         break;
     case Qt::Key_Right:
-        m_timeMin = m_timeMin + m_timeMax/2;
-        m_timeMax = m_timeMax + m_timeMax/2;
+        mooveRight();
         break;
     case Qt::Key_F5:
-        m_autoupdate = !m_autoupdate;
+        autoupdate();
         break;
     case Qt::Key_Control:
         setRubberBand(QChartView::RectangleRubberBand);
@@ -275,4 +304,23 @@ QVector<QLineF> Oscilloscope::getTrendsLines()
        }
     }
     return result;
+}
+
+qreal Oscilloscope::getTimeMax() const
+{
+    return m_chart->mapToValue(m_chart->plotArea().bottomRight()).x();
+}
+
+qreal Oscilloscope::getTimeMin() const
+{
+    return m_chart->mapToValue(m_chart->plotArea().bottomLeft()).x();
+}
+
+qreal Oscilloscope::getValMax() const
+{
+    return m_chart->mapToValue(m_chart->plotArea().topRight()).y();
+}
+qreal Oscilloscope::getValMin() const
+{
+    return m_chart->mapToValue(m_chart->plotArea().bottomRight()).y();
 }
