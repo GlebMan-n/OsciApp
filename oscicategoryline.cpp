@@ -74,8 +74,8 @@ void OsciCategoryLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
         if(!m_pressed && (m_drawText == 0 || m_drawText == 2))
         {
-            int x = (int) m_chart->mapToValue(m_chart->mapFromScene(pos())).x();
-            QString valS = QString::number(x);
+            qreal x =  m_chart->mapToValue(m_chart->mapFromScene(pos())).x();
+            QString valS = QString::number(x,'f',2);
             QFontMetrics fm(painter->font());
             qreal width = fm.width(valS);
             pt1.setX(pt1.x() - width / 2);
@@ -104,8 +104,8 @@ void OsciCategoryLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
         if(!m_pressed && (m_drawText == 0 || m_drawText == 2))
         {
-            int y = (int) m_chart->mapToValue(m_chart->mapFromScene(pos())).y();
-            QString valS = QString::number(y);
+            qreal y = m_chart->mapToValue(m_chart->mapFromScene(pos())).y();
+            QString valS = QString::number(y,'f',2);
             if(!valS.isEmpty())
             {
                 QFontMetrics fm(painter->font());

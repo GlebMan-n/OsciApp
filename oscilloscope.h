@@ -17,7 +17,7 @@ class QGraphicsLineItem;
 class Oscilloscope : public QChartView
 {
 public:
-    Oscilloscope(QWidget *parent = nullptr);
+    Oscilloscope(int id, QWidget *parent = nullptr);
     void update();
     TrendOscilloscope* findTrendById(int id);
     void setTimeMax(qreal timeMax) {m_timeMax = timeMax;}
@@ -42,6 +42,18 @@ public:
     void mooveRight();
     void autoupdate();
 
+    int getId() const;
+    void setId(int id);
+
+    QString getHeader() const;
+    void setHeader(const QString &header);
+
+    QString getBottomLabel() const;
+    void setBottomLabel(const QString &bottomLabel);
+
+    QString getLeftLabel() const;
+    void setLeftLabel(const QString &leftLabel);
+
 private:
     //нарисовать метки пересечений
     void drawAllLabels();
@@ -59,6 +71,10 @@ protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 private:
+    QString                         m_header;
+    QString                         m_bottomLabel;
+    QString                         m_leftLabel;
+    int                             m_id;
     QList<TrendOscilloscope*>       m_trends;
     OsciChart*                      m_chart;
     QValueAxis*                     m_axisY;

@@ -7,13 +7,15 @@
 #include "oscitools.h"
 #include "oscicategoryline.h"
 
-Oscilloscope::Oscilloscope(QWidget *parent/* = nullptr*/)
+Oscilloscope::Oscilloscope(int id, QWidget *parent/* = nullptr*/)
 {    
     this->setParent(parent);
+    setId(id);
+    addTrend(new TrendOscilloscope(this, id));
     m_chart = new OsciChart();
 
     m_chart->legend()->hide();
-    m_chart->setTitle(QObject::tr("Осциллоскоп"));
+
 
     m_dtStart = QDateTime::currentDateTime();
     m_autoupdate = false;
@@ -25,22 +27,16 @@ Oscilloscope::Oscilloscope(QWidget *parent/* = nullptr*/)
     m_TickCountVal = 5;
 
     QVector<QPointF> vec ;
-    TrendOscilloscope* trend = new TrendOscilloscope(this, 0);
-    addTrend(trend);
-
-    addTrend(new TrendOscilloscope(this, 1, true, 10));
-    addTrend(new TrendOscilloscope(this, 2, true, 10));
-
     m_axisX = new QValueAxis();
     m_axisX->setLabelFormat("%i");
-    m_axisX->setTitleText(QObject::tr("время (сек)"));
+
     m_axisX->setMin(m_timeMin);
 
     m_axisX->setLinePenColor(Qt::red);
     m_chart->addAxis(m_axisX, Qt::AlignBottom);
 
     m_axisY = new QValueAxis;
-    m_axisY->setTitleText(QObject::tr("значение (ед.)"));
+
     m_axisY->setLinePenColor(Qt::green);
     m_axisY->setMin(0);
 
@@ -69,8 +65,6 @@ Oscilloscope::Oscilloscope(QWidget *parent/* = nullptr*/)
     m_axisX->setMin(m_timeMin);
     m_axisY->setMax(m_valMax);
     m_axisY->setMin(m_valMin);
-
-
 }
 
 void Oscilloscope::addTrend(TrendOscilloscope* trend)
@@ -127,6 +121,49 @@ void Oscilloscope::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
+QString Oscilloscope::getLeftLabel() const
+{
+    return m_leftLabel;
+}
+
+void Oscilloscope::setLeftLabel(const QString &leftLabel)
+{
+    m_leftLabel = leftLabel;
+    m_axisY->setTitleText(m_leftLabel);
+}
+
+QString Oscilloscope::getBottomLabel() const
+{
+    return m_bottomLabel;
+}
+
+void Oscilloscope::setBottomLabel(const QString &bottomLabel)
+{
+    m_bottomLabel = bottomLabel;
+    m_axisX->setTitleText(m_bottomLabel);
+}
+
+QString Oscilloscope::getHeader() const
+{
+    return m_header;
+}
+
+void Oscilloscope::setHeader(const QString &header)
+{
+    m_header = header;
+    m_chart->setTitle(m_header);
+}
+
+int Oscilloscope::getId() const
+{
+    return m_id;
+}
+
+void Oscilloscope::setId(int id)
+{
+    m_id = id;
+}
+
 void Oscilloscope::refresh()
 {
     m_timeMax = 1200;
@@ -146,24 +183,36 @@ void Oscilloscope::refresh()
 
 void Oscilloscope::zoomIn()
 {
-    m_timeMax = m_timeMax - m_timeMax/2;
+    m_chart->zoomIn();
 }
 
 void Oscilloscope::zoomOut()
 {
-    m_timeMax = m_timeMax + m_timeMax/2;
+    m_chart->zoomOut();
 }
 
 void Oscilloscope::mooveLeft()
 {
-    m_timeMin = m_timeMin - m_timeMax/2;
-    m_timeMax = m_timeMax - m_timeMax/2;
+    qreal tmp = m_timeMax/4;
+    m_timeMax -= tmp;
+    m_timeMin -= tmp;
+    m_axisX->setMax(m_timeMax);
+    m_axisX->setMin(m_timeMin);
+    m_autoupdate = false;
+    this->scene()->update();
+    m_chart->plotAreaChanged(m_chart->plotArea());
 }
 
 void Oscilloscope::mooveRight()
 {
-    m_timeMin = m_timeMin + m_timeMax/2;
-    m_timeMax = m_timeMax + m_timeMax/2;
+    qreal tmp = m_timeMax/4;
+    m_timeMax += tmp;
+    m_timeMin += tmp;
+    m_axisX->setMax(m_timeMax);
+    m_axisX->setMin(m_timeMin);
+    m_autoupdate = false;
+    this->scene()->update();
+    m_chart->plotAreaChanged(m_chart->plotArea());
 }
 
 void Oscilloscope::autoupdate()
@@ -265,7 +314,8 @@ QVector<QPointF> Oscilloscope::findAllLabelPoints()
 bool Oscilloscope::drawLabel(const QPointF &labelPoint)
 {
     OsciTooltip* tooltip = new OsciTooltip(m_chart);
-    tooltip->setText(QString("X: %1 \nY: %2 ").arg(labelPoint.x()).arg(labelPoint.y()));
+    //tooltip->setText(QString("X: %1 \nY: %2 ").arg(labelPoint.x()).arg(labelPoint.y()));
+    tooltip->setText(QString("Y: %1 ").arg(QString::number(labelPoint.y(),'f',2)));
     tooltip->setAnchor(labelPoint);
     tooltip->setZValue(11);
     tooltip->updateGeometry();

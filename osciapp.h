@@ -17,6 +17,8 @@ class OsciApp : public QMainWindow
 public:
     explicit OsciApp(QWidget *parent = nullptr);
     ~OsciApp();
+    void createTestData();
+    Oscilloscope* getOsciById(int id);
 private:
     QMenu*      m_file;
     QMenu*      m_view;
@@ -50,10 +52,11 @@ private slots:
 
 
 private:
-    Ui::OsciApp*    ui;
-    QTimer*         m_timer;
-    Oscilloscope*   m_oscilloscope;
-    int             m_timeout;
+    Ui::OsciApp*            ui;
+    QTimer*                 m_timer;
+    QList<Oscilloscope*>    m_oscilloscopes;
+    int                     m_size;
+    int                     m_timeout;
 };
 
 #endif // OSCIAPP_H
